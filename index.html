@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Game Portal</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      overflow-x: hidden;
+    }
+    .container {
+      overflow: hidden;
+      position: relative;
+      width: 100vw;
+    }
+    .grid-wrapper {
+      display: flex;
+      flex-wrap: nowrap;
+      width: 100%;
+      transition: transform 0.4s ease;
+    }
+    .page {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      justify-content: center;
+      align-content: start;
+      gap: 20px;
+      padding: 20px;
+      width: 100vw;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+    .game-icon {
+      background: #fff;
+      border-radius: 16px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+    .game-icon img {
+      width: 60px;
+      height: 60px;
+    }
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.4);
+      color: white;
+      font-size: 24px;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 2;
+      user-select: none;
+    }
+    .arrow.left {
+      left: 10px;
+    }
+    .arrow.right {
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="arrow left" onclick="prevPage()">&#9664;</div>
+  <div class="arrow right" onclick="nextPage()">&#9654;</div>
+  <div class="container">
+    <div class="grid-wrapper" id="carousel"></div>
+  </div>
+  <script>
+    const games = [
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+  { name: "Color Drop", img: "https://cdn-icons-png.flaticon.com/512/3468/3468370.png", link: "https://www.google.com" },
+  { name: "Zombie Hunt", img: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png", link: "https://www.google.com" },
+  { name: "Speed Run", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "https://www.google.com" },
+  { name: "Magic Tiles", img: "https://cdn-icons-png.flaticon.com/512/826/826070.png", link: "https://www.google.com" },
+  { name: "Pinball Madness", img: "https://cdn-icons-png.flaticon.com/512/3501/3501399.png", link: "https://www.google.com" },
+  { name: "Sky Fall", img: "https://cdn-icons-png.flaticon.com/512/3306/3306613.png", link: "https://www.google.com" },
+  { name: "Tower Climb", img: "https://cdn-icons-png.flaticon.com/512/1048/1048949.png", link: "https://www.google.com" },
+  { name: "Fish Jump", img: "https://cdn-icons-png.flaticon.com/512/3976/3976876.png", link: "https://www.google.com" },
+  { name: "Duck Hunt", img: "https://cdn-icons-png.flaticon.com/512/3771/3771408.png", link: "https://www.google.com" },
+  { name: "Asteroid Rush", img: "https://cdn-icons-png.flaticon.com/512/826/826083.png", link: "https://www.google.com" },
+  { name: "Alien Attack", img: "https://cdn-icons-png.flaticon.com/512/679/679720.png", link: "https://www.google.com" },
+  { name: "Fruit Match", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "https://www.google.com" },
+  { name: "Car Race", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "https://www.google.com" },
+  { name: "Maze Escape", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "https://www.google.com" },
+  { name: "Stack Builder", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "https://www.google.com" },
+  { name: "Bubble Pop", img: "https://cdn-icons-png.flaticon.com/512/2934/2934150.png", link: "https://www.google.com" },
+  { name: "Block Puzzle", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "https://www.google.com" },
+  { name: "Math Rush", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "https://www.google.com" },
+  { name: "Rocket Jump", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "https://www.google.com" },
+];
+
+    let currentPage = 0;
+    const carousel = document.getElementById('carousel');
+
+    function buildPages() {
+      carousel.innerHTML = '';
+      const containerWidth = document.querySelector('.container').offsetWidth;
+      const iconWidth = 120; // includes padding and margin roughly
+      const iconsPerRow = Math.floor(containerWidth / iconWidth);
+      const iconHeight = 120;
+      const containerHeight = window.innerHeight - 80;
+      const iconsPerCol = Math.floor(containerHeight / iconHeight);
+      const perPage = iconsPerRow * iconsPerCol || 1;
+      const pageCount = Math.ceil(games.length / perPage);
+
+      for (let i = 0; i < pageCount; i++) {
+        const page = document.createElement('div');
+        page.className = 'page';
+        const start = i * perPage;
+        const end = start + perPage;
+        games.slice(start, end).forEach(game => {
+          const icon = document.createElement('div');
+          icon.className = 'game-icon';
+          icon.innerHTML = `<a href="${game.link}"><img src="${game.img}" alt="${game.name}"><div>${game.name}</div></a>`;
+          page.appendChild(icon);
+        });
+        carousel.appendChild(page);
+      }
+      updateCarousel();
+    }
+
+    function updateCarousel() {
+      carousel.style.transform = `translateX(-${currentPage * 100}%)`;
+    }
+
+    function nextPage() {
+      const totalPages = carousel.children.length;
+      if (currentPage < totalPages - 1) {
+        currentPage++;
+        updateCarousel();
+      }
+    }
+
+    function prevPage() {
+      if (currentPage > 0) {
+        currentPage--;
+        updateCarousel();
+      }
+    }
+
+    let startX = 0;
+    let isDragging = false;
+
+    window.addEventListener('resize', () => {
+      currentPage = 0;
+      buildPages();
+    });
+
+    carousel.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    });
+
+    carousel.addEventListener('touchend', e => {
+      if (!isDragging) return;
+      const endX = e.changedTouches[0].clientX;
+      const diff = startX - endX;
+      if (diff > 50) nextPage();
+      else if (diff < -50) prevPage();
+      isDragging = false;
+    });
+
+    buildPages();
+  </script>
+</body>
+</html>
