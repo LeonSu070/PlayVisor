@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tetris</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    canvas {
+      background: #222;
+      box-shadow: 0 0 20px #0ff;
+      border: 2px solid #555;
+    }
+  </style>
+</head>
+<body>
+  <!-- 🧱 Canvas width increased from 240 to 320 (12 + 4 columns) -->
+  <canvas id="tetris" width="320" height="400"></canvas>
+  <script src="tetris.js"></script>
+</body>
+</html>

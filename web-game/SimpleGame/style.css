@@ -1,0 +1,48 @@
+    /* We don’t want the layout of the table to depend upon the contents of its cells, and 
+     we don’t want space between the table cells or padding inside them.*/
+    .background {
+      background: lightgray;
+      table-layout: fixed;
+      border-spacing: 0;
+    }
+    .background td { 
+      padding: 0;                     
+    }
+    .lava { 
+      background: red; 
+    }
+    .wall { 
+      background: black;              
+    }
+    
+    .actor {
+      position: absolute;
+    }
+    .coin {
+      background: gold;
+    }
+    .player {
+      background: white;
+    }
+    
+    /* After touching lava, the player’s color turns dark red, suggesting scorching. */
+    .lost .player {
+      background: red;
+    }
+    /* When the last coin has been collected, we use two blurred white box shadows, 
+    one to the top left and one to the top right, to create a white halo effect. */
+    .won .player {
+      box-shadow: -4px -7px 8px white, 4px -7px 8px white;
+    }
+    
+    /* The following CSS gives the game’s wrapping DOM element a maximum size and 
+    ensures that anything that sticks out of the element’s box is not visible. 
+    
+    We also give the outer element a relative position so that 
+    the actors inside it are positioned relative to the level’s top-left corner. */
+    .game {
+      overflow: hidden;
+      max-width: 600px;
+      max-height: 450px;
+      position: relative;
+    }
