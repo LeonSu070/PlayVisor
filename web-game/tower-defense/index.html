@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ultimate Tower Defense</title>
+  <style>
+    body {
+      margin: 0;
+      background: #222;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      background: #eee;
+      border: 2px solid black;
+      margin-top: 10px;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    button {
+      margin: 2px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls" id="buttons"></div>
+  <div>
+    💰 Money: $<span id="money">200</span>
+    ❤️ Lives: <span id="lives">10</span>
+    🎓 Wave: <span id="wave">1</span>
+    
+  </div>
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const moneyEl = document.getElementById("money");
+    const livesEl = document.getElementById("lives");
+    const waveEl = document.getElementById("wave");
+    const buttonsDiv = document.getElementById("buttons");
+
+    let money = 200, lives = 10, wave = 1, waveInProgress = false;
+    let selectedTowerType = null, towers = [], bullets = [], enemies = [], waveQueue = [], waveTimer = 0;
+
+    const waypoints = [
+      {x: 0, y: 250}, {x: 150, y: 250}, {x: 150, y: 100},
+      {x: 400, y: 100}, {x: 400, y: 350}, {x: 800, y: 350}
+    ];
+
+    const towerTypes = [
+      {name: "Basic", cost: 30, range: 80, damage: 0.5, cooldown: 60, color: "blue"},
+      {name: "Sniper", cost: 50, range: 150, damage: 1.2, cooldown: 90, color: "green"},
+      {name: "Rapid", cost: 40, range: 70, damage: 0.3, cooldown: 20, color: "red"},
+      {name: "Poison", cost: 80, range: 100, damage: 0.3, cooldown: 70, effect: "poison", color: "darkgreen"}
+    ];
+
+    towerTypes.forEach((t, i) => {
+      const btn = document.createElement("button");
+      btn.innerText = `${t.name} ($${t.cost})`;
+      btn.style.backgroundColor = t.color;
+      btn.onclick = () => selectedTowerType = i;
+      buttonsDiv.appendChild(btn);
+    });
+
+    function startWave() {
+      if (waveInProgress) return;
+      waveInProgress = true;
+      let count = wave;
+      for (let i = 0; i < count; i++) {
+        const fast = (wave >= 3 && i === count - 1);
+        let hp = 5 + wave * 2;
+        let isBoss = (wave % 10 === 0 && i === 0);
+        if (isBoss) hp *= 5;
+        let enemy = {
+          x: waypoints[0].x, y: waypoints[0].y, wp: 1,
+          hp: hp,
+          maxHp: hp,
+          speed: isBoss ? 0.5 : fast ? 2 + wave * 0.1 : 1 + wave * 0.05,
+          color: isBoss ? "black" : fast ? "gold" : `hsl(${wave * 30}, 100%, 50%)`,
+          effects: {},
+          ability: isBoss ? "boss" : fast ? "fast" : null,
+          reward: Math.floor(hp / 2)
+        };
+        waveQueue.push(enemy);
+      }
+    }
+
+    let waveDelay = 300; // 5 seconds at 60fps
+    function spawnEnemy() {
+      if (waveQueue.length > 0 && waveTimer <= 0) {
+        enemies.push(waveQueue.shift());
+        waveTimer = 60;
+      } else {
+        waveTimer--;
+      }
+
+      if (waveQueue.length === 0 && enemies.length === 0) {
+        if (waveInProgress) {
+          waveInProgress = false;
+          wave++;
+          waveEl.innerText = wave;
+          waveDelay = 300;
+        } else {
+          waveDelay--;
+          if (waveDelay <= 0) {
+            startWave();
+          }
+        }
+      }
+    }
+
+
+
+    function shoot(t, e) {
+      bullets.push({x: t.x, y: t.y, target: e, damage: t.damage, speed: 5, tower: t});
+    }
+
+    function update() {
+      spawnEnemy();
+
+      for (let e of enemies) {
+        let freezeFactor = 1;
+
+        if (e.wp >= waypoints.length) {
+          lives--; livesEl.innerText = lives;
+          e.hp = 0;
+          continue;
+        }
+
+        let wp = waypoints[e.wp];
+        const dx = wp.x - e.x, dy = wp.y - e.y, dist = Math.hypot(dx, dy);
+        let slow = 1;
+        if (dist < e.speed * slow * freezeFactor) {
+          e.x = wp.x;
+          e.y = wp.y;
+          e.wp++;
+        } else {
+          e.x += (dx / dist) * e.speed * slow * freezeFactor;
+          e.y += (dy / dist) * e.speed * slow * freezeFactor;
+        }
+
+        if (e.effects.poison && e.effects.poison > 0) {
+          e.hp -= 0.05;
+          e.effects.poison--;
+        }
+        
+      }
+      enemies = enemies.filter(e => e.hp > 0);
+
+      for (let t of towers) {
+        if (t.cooldown > 0) { t.cooldown--; continue; }
+        let targets = enemies.filter(e => Math.hypot(t.x - e.x, t.y - e.y) < t.range);
+        if (targets.length > 0) {
+          shoot(t, targets[0]);
+          t.cooldown = t.cooldownMax;
+        }
+      }
+
+      for (let b of bullets) {
+        const dx = b.target.x - b.x, dy = b.target.y - b.y, dist = Math.hypot(dx, dy);
+        if (dist < 5) {
+          b.target.hp -= b.damage;
+          if (b.tower.effect) {
+            b.target.effects[b.tower.effect] = 90;
+          }
+          b.hit = true;
+          if (b.target.hp <= 0) {
+            money = Math.min(money + b.target.reward, 1000000);
+            moneyEl.innerText = money;
+          }
+          if (b.target.hp <= 0) {
+            money = Math.min(money + b.target.reward, 1000000);
+            moneyEl.innerText = money;
+          }
+        } else {
+          b.x += (dx / dist) * b.speed;
+          b.y += (dy / dist) * b.speed;
+        }
+      }
+      bullets = bullets.filter(b => !b.hit);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "#ccc";
+      ctx.lineWidth = 30;
+      ctx.beginPath();
+      ctx.moveTo(waypoints[0].x, waypoints[0].y);
+      for (let wp of waypoints) ctx.lineTo(wp.x, wp.y);
+      ctx.stroke();
+
+      for (let e of enemies) {
+        ctx.fillStyle = e.color;
+        ctx.fillRect(e.x - 10, e.y - 10, 20, 20);
+        ctx.fillStyle = "red";
+        ctx.fillRect(e.x - 10, e.y - 15, 20, 3);
+        ctx.fillStyle = "green";
+        ctx.fillRect(e.x - 10, e.y - 15, 20 * (e.hp / e.maxHp), 3);
+      }
+
+      for (let t of towers) {
+        ctx.fillStyle = t.color;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (let b of bullets) {
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    let firstWaveDelay = 300;
+function gameLoop() {
+      if (wave === 1 && !waveInProgress && firstWaveDelay > 0) {
+        firstWaveDelay--;
+        if (firstWaveDelay === 0) startWave();
+      }
+      update();
+      draw();
+      if (lives > 0) requestAnimationFrame(gameLoop);
+      else ctx.fillText("Game Over", 350, 250);
+    }
+
+    canvas.addEventListener("click", e => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const type = towerTypes[selectedTowerType];
+      if (type && money >= type.cost) {
+        towers.push({x, y, range: type.range, damage: type.damage, cooldown: 0, cooldownMax: type.cooldown, color: type.color, ...type});
+        money -= type.cost;
+        moneyEl.innerText = money;
+      }
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>

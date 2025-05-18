@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Chess</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
+      font-family: sans-serif;
+    }
+    #chessboard {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      border: 2px solid black;
+    }
+    .square {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      cursor: pointer;
+      position: relative;
+    }
+    .white { background-color: #f0d9b5; }
+    .black { background-color: #b58863; }
+    .selected { outline: 3px solid red; }
+    .highlight::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: rgba(0, 255, 0, 0.6);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    select { margin: 10px; font-size: 16px; }
+    #gameOverMsg { font-size: 20px; color: red; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<div>
+  Mode:
+  <select id="mode">
+    <option value="ai">Human vs AI</option>
+    <option value="human">Human vs Human</option>
+  </select>
+</div>
+<div id="difficultyContainer">
+  Difficulty:
+  <select id="difficulty">
+    <option value="1">Easy</option>
+    <option value="2">Medium</option>
+    <option value="3">Hard</option>
+  </select>
+</div>
+<div id="chessboard"></div>
+<div id="promotion" style="display:none">
+  Promote to: 
+  <select id="promotionSelect">
+    <option value="q">Queen</option>
+    <option value="r">Rook</option>
+    <option value="b">Bishop</option>
+    <option value="n">Knight</option>
+  </select>
+</div>
+<div id="gameOverMsg"></div>
+
+<script>
+  const board = document.getElementById('chessboard');
+  const promotionUI = document.getElementById('promotion');
+  const promotionSelect = document.getElementById('promotionSelect');
+  const gameOverMsg = document.getElementById('gameOverMsg');
+  const difficultySelect = document.getElementById('difficulty');
+  const modeSelect = document.getElementById('mode');
+  const difficultyContainer = document.getElementById('difficultyContainer');
+
+  const pieces = {
+    r: '♜', n: '♞', b: '♝', q: '♛', k: '♚', p: '♟',
+    R: '♖', N: '♘', B: '♗', Q: '♕', K: '♔', P: '♙',
+    '': ''
+  };
+
+  const isWhite = p => p === p.toUpperCase();
+  let selected = null;
+  let turn = 'white';
+  let highlights = [];
+  let promoteAt = null;
+  let enPassant = null;
+
+  const castlingRights = {
+    white: { kingMoved: false, rookLeftMoved: false, rookRightMoved: false },
+    black: { kingMoved: false, rookLeftMoved: false, rookRightMoved: false }
+  };
+
+  const initialPosition = [
+    'r','n','b','q','k','b','n','r',
+    'p','p','p','p','p','p','p','p',
+    '','','','','','','','',
+    '','','','','','','','',
+    '','','','','','','','',
+    '','','','','','','','',
+    'P','P','P','P','P','P','P','P',
+    'R','N','B','Q','K','B','N','R'
+  ];
+  const state = [...initialPosition];
+
+  function isValidMove(from, to) {
+    const piece = state[from];
+    const target = state[to];
+    if (!piece || (target && isWhite(piece) === isWhite(target))) return false;
+    const [fx, fy] = [from % 8, Math.floor(from / 8)];
+    const [tx, ty] = [to % 8, Math.floor(to / 8)];
+    const dx = tx - fx, dy = ty - fy;
+    const absDx = Math.abs(dx), absDy = Math.abs(dy);
+    const dir = isWhite(piece) ? -1 : 1;
+
+    switch (piece.toLowerCase()) {
+      case 'p': {
+        const startRow = isWhite(piece) ? 6 : 1;
+        if (dx === 0 && dy === dir && !target) return true;
+        if (dx === 0 && dy === dir * 2 && fy === startRow && !state[from + dir * 8] && !target) {
+          enPassant = from + dir * 8;
+          return true;
+        }
+        if (absDx === 1 && dy === dir && target && isWhite(piece) !== isWhite(target)) return true;
+        if (absDx === 1 && dy === dir && !target && to === enPassant) return true;
+        return false;
+      }
+      case 'r': return (dx === 0 || dy === 0) && isPathClear(from, to);
+      case 'n': return (absDx === 1 && absDy === 2) || (absDx === 2 && absDy === 1);
+      case 'b': return absDx === absDy && isPathClear(from, to);
+      case 'q': return (dx === 0 || dy === 0 || absDx === absDy) && isPathClear(from, to);
+      case 'k': return absDx <= 1 && absDy <= 1;
+    }
+    return false;
+  }
+
+  function isPathClear(from, to) {
+    const fx = from % 8, fy = Math.floor(from / 8);
+    const tx = to % 8, ty = Math.floor(to / 8);
+    const dx = Math.sign(tx - fx), dy = Math.sign(ty - fy);
+    let x = fx + dx, y = fy + dy;
+    while (x !== tx || y !== ty) {
+      if (state[y * 8 + x] !== '') return false;
+      x += dx; y += dy;
+    }
+    return true;
+  }
+
+    function getValidMoves(from) {
+    const valid = [];
+    for (let to = 0; to < 64; to++) {
+      const backup = [...state];
+      const captured = state[to];
+      if (isValidMove(from, to)) {
+        state[to] = state[from];
+        state[from] = '';
+        const king = state.findIndex((p, i) => p.toLowerCase() === 'k' && isWhite(p) === (turn === 'white'));
+        if (!isUnderAttack(king, turn === 'black')) valid.push(to);
+        state[from] = state[to];
+        state[to] = captured;
+      }
+    }
+    return valid;
+  }
+
+  function isUnderAttack(index, byWhite) {
+    for (let i = 0; i < 64; i++) {
+      if (state[i] && isWhite(state[i]) === byWhite && isValidMove(i, index)) return true;
+    }
+    return false;
+  }
+
+  function isCheckmate(color) {
+    for (let i = 0; i < 64; i++) {
+      if (state[i] && isWhite(state[i]) === (color === 'white')) {
+        if (getValidMoves(i).length > 0) return false;
+      }
+    }
+    return true;
+  }
+
+  function makeMove(from, to, piece, promoteTo = null) {
+    state[to] = promoteTo ? (isWhite(piece) ? promoteTo.toUpperCase() : promoteTo.toLowerCase()) : piece;
+    state[from] = '';
+    const color = isWhite(piece) ? 'white' : 'black';
+    if (piece.toLowerCase() === 'k') castlingRights[color].kingMoved = true;
+    if (piece.toLowerCase() === 'r') {
+      if (from % 8 === 0) castlingRights[color].rookLeftMoved = true;
+      if (from % 8 === 7) castlingRights[color].rookRightMoved = true;
+    }
+    turn = turn === 'white' ? 'black' : 'white';
+    enPassant = null;
+
+    if (isCheckmate(turn)) {
+      gameOverMsg.textContent = `${turn === 'white' ? 'Black' : 'White'} wins by checkmate!`;
+      return;
+    }
+
+    if (modeSelect.value === 'ai' && turn === 'black') setTimeout(computerMove, 500);
+  }
+
+  function evaluateMove(from, to) {
+    const target = state[to];
+    if (!target) return 0;
+    const values = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 100 };
+    return values[target.toLowerCase()] || 0;
+  }
+
+  function computerMove() {
+    const moves = [];
+    for (let i = 0; i < 64; i++) {
+      if (state[i] && !isWhite(state[i])) {
+        for (const to of getValidMoves(i)) {
+          const score = evaluateMove(i, to);
+          moves.push({ from: i, to, score });
+        }
+      }
+    }
+    if (moves.length === 0) return;
+    const level = parseInt(difficultySelect.value);
+    moves.sort((a, b) => b.score - a.score);
+    const pick = level === 1
+      ? moves[Math.floor(Math.random() * moves.length)]
+      : level === 2
+        ? moves[Math.min(2, moves.length - 1)]
+        : moves[0];
+    const piece = state[pick.from];
+    if (piece.toLowerCase() === 'p' && (pick.to < 8 || pick.to >= 56)) {
+      makeMove(pick.from, pick.to, piece, 'q');
+    } else {
+      makeMove(pick.from, pick.to, piece);
+    }
+    renderBoard();
+
+  modeSelect.addEventListener('change', () => {
+    difficultyContainer.style.display = modeSelect.value === 'ai' ? 'block' : 'none';
+  });
+  difficultyContainer.style.display = modeSelect.value === 'ai' ? 'block' : 'none';
+  }
+
+  board.addEventListener('click', (e) => {
+    const idx = e.target.dataset.index;
+    if (promotionUI.style.display !== 'none') return;
+    if (idx === undefined) return;
+    const i = parseInt(idx);
+    const piece = state[i];
+
+    if (selected === null && piece && isWhite(piece) === (turn === 'white')) {
+      selected = i;
+      highlights = getValidMoves(i);
+    } else if (selected !== null) {
+      const from = selected, to = i;
+      const piece = state[from];
+      if (getValidMoves(from).includes(to)) {
+        if (piece.toLowerCase() === 'p' && (to < 8 || to >= 56)) {
+          promoteAt = { from, to, piece };
+          promotionUI.style.display = 'inline';
+          return;
+        }
+        makeMove(from, to, piece);
+      }
+      selected = null;
+      highlights = [];
+    }
+    renderBoard();
+  });
+
+  promotionSelect.addEventListener('change', () => {
+    if (promoteAt) {
+      makeMove(promoteAt.from, promoteAt.to, promoteAt.piece, promotionSelect.value);
+      promotionUI.style.display = 'none';
+      promoteAt = null;
+      renderBoard();
+    }
+  });
+
+  function renderBoard() {
+    board.innerHTML = '';
+    for (let i = 0; i < 64; i++) {
+      const s = document.createElement('div');
+      s.className = 'square ' + ((Math.floor(i / 8) + i) % 2 ? 'white' : 'black');
+      if (selected === i) s.classList.add('selected');
+      if (highlights.includes(i)) s.classList.add('highlight');
+      s.textContent = pieces[state[i]];
+      s.dataset.index = i;
+      board.appendChild(s);
+    }
+  }
+
+  renderBoard();
+</script>
+</body>
+</html>

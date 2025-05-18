@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tiger and Kids Game</title>
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+    .board { display: grid; grid-template-columns: repeat(5, 60px); gap: 2px; margin-top: 20px; }
+    .cell {
+      width: 60px; height: 60px;
+      border: 1px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .tiger { color: orange; font-weight: bold; }
+    .kid { color: green; font-weight: bold; }
+    .selected { background-color: #ddd; }
+    .movable { background-color: #aaffaa; }
+  </style>
+</head>
+<body>
+  <h2>Tiger vs Kids</h2>
+  <div class="board" id="board"></div>
+  <p id="status"></p>
+  <button onclick="undoMove()">Undo</button>
+
+  <audio id="moveSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="eatSound" src="https://actions.google.com/sounds/v1/impacts/crash.ogg"></audio>
+  <audio id="winTigerSound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
+  <audio id="winKidSound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const winTigerSound = document.getElementById('winTigerSound');
+    const winKidSound = document.getElementById('winKidSound');
+    const eatSound = document.getElementById('eatSound');
+    const moveSound = document.getElementById('moveSound');
+
+    const SIZE = 5;
+    const EMPTY = '';
+    const TIGER = 'T';
+    const KID = 'K';
+
+    let board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+    let turn = TIGER;
+    let selected = null;
+    let possibleMoves = [];
+    let history = [];
+
+    board[0][1] = TIGER;
+    board[0][2] = TIGER;
+    board[0][3] = TIGER;
+
+    let kidIndex = 0;
+    for (let col = 0; col < SIZE && kidIndex < 15; col++) board[4][col] = KID, kidIndex++;
+    for (let col = 0; col < SIZE && kidIndex < 15; col++) board[3][col] = KID, kidIndex++;
+    for (let col = 0; col < SIZE && kidIndex < 15; col++) board[2][col] = KID, kidIndex++;
+
+    function render() {
+      boardEl.innerHTML = '';
+      board.forEach((row, r) => {
+        row.forEach((cell, c) => {
+          const div = document.createElement('div');
+          div.className = 'cell';
+          if (cell === TIGER) div.classList.add('tiger');
+          if (cell === KID) div.classList.add('kid');
+          if (selected && selected.r === r && selected.c === c) div.classList.add('selected');
+          if (possibleMoves.some(m => m.r === r && m.c === c)) div.classList.add('movable');
+          div.textContent = cell;
+          div.onclick = () => handleClick(r, c);
+          boardEl.appendChild(div);
+        });
+      });
+    }
+
+    function cloneBoard(b) {
+      return b.map(row => row.slice());
+    }
+
+    function handleClick(r, c) {
+      const piece = board[r][c];
+      if (selected) {
+        const sr = selected.r;
+        const sc = selected.c;
+        const moving = board[sr][sc];
+        if (moving !== turn) return;
+        const dr = r - sr;
+        const dc = c - sc;
+        const absDr = Math.abs(dr);
+        const absDc = Math.abs(dc);
+        const isStraight = (dr === 0 || dc === 0);
+
+        // Tiger eats Kid
+        if (
+          turn === TIGER &&
+          isStraight &&
+          absDr + absDc === 2
+        ) {
+          const midR = sr + dr / 2;
+          const midC = sc + dc / 2;
+          if (
+            board[midR][midC] === KID &&
+            board[r][c] === EMPTY
+          ) {
+            history.push({ board: cloneBoard(board), turn });
+            board[sr][sc] = EMPTY;
+            board[midR][midC] = EMPTY;
+            board[r][c] = TIGER;
+            eatSound.play();
+            setTimeout(() => moveSound.play(), 100);
+            selected = null;
+            possibleMoves = [];
+            toggleTurn();
+            render();
+            checkWin();
+            return;
+          }
+        }
+
+        // Normal move
+        if (
+          isStraight &&
+          absDr + absDc === 1 &&
+          board[r][c] === EMPTY
+        ) {
+          history.push({ board: cloneBoard(board), turn });
+          board[r][c] = moving;
+          board[sr][sc] = EMPTY;
+          moveSound.play();
+          selected = null;
+          possibleMoves = [];
+          toggleTurn();
+        } else {
+          selected = null;
+          possibleMoves = [];
+        }
+
+        render();
+        checkWin();
+      } else if (piece === turn) {
+        selected = { r, c };
+        possibleMoves = calculateMoves(r, c);
+        render();
+      }
+    }
+
+    function calculateMoves(r, c) {
+      const moves = [];
+      const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr;
+        const nc = c + dc;
+        const jr = r + dr * 2;
+        const jc = c + dc * 2;
+        if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE && board[nr][nc] === EMPTY)
+          moves.push({ r: nr, c: nc });
+        if (
+          board[r][c] === TIGER &&
+          nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE &&
+          jr >= 0 && jr < SIZE && jc >= 0 && jc < SIZE &&
+          board[nr][nc] === KID && board[jr][jc] === EMPTY
+        )
+          moves.push({ r: jr, c: jc });
+      }
+      return moves;
+    }
+
+    function undoMove() {
+      if (history.length > 0) {
+        const last = history.pop();
+        board = cloneBoard(last.board);
+        turn = last.turn;
+        selected = null;
+        possibleMoves = [];
+        render();
+        statusEl.textContent = `${turn === TIGER ? 'Tiger' : 'Kid'}'s turn`;
+      }
+    }
+
+    function toggleTurn() {
+      turn = (turn === TIGER) ? KID : TIGER;
+      statusEl.textContent = `${turn === TIGER ? 'Tiger' : 'Kid'}'s turn`;
+    }
+
+    function checkWin() {
+      const tigers = [];
+      let kidsLeft = 0;
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          if (board[r][c] === TIGER) tigers.push([r, c]);
+          if (board[r][c] === KID) kidsLeft++;
+        }
+      }
+      if (kidsLeft === 0) {
+        statusEl.textContent = 'Tiger wins!';
+        winTigerSound.play();
+        alert('Tiger wins!');
+        boardEl.onclick = null;
+        return;
+      }
+      const tigerCanMove = tigers.some(([r, c]) => {
+        for (const [dr, dc] of [[0,1],[1,0],[0,-1],[-1,0]]) {
+          const nr = r + dr;
+          const nc = c + dc;
+          const jr = r + dr * 2;
+          const jc = c + dc * 2;
+          if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE && board[nr][nc] === EMPTY) return true;
+          if (
+            nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE &&
+            jr >= 0 && jr < SIZE && jc >= 0 && jc < SIZE &&
+            board[nr][nc] === KID && board[jr][jc] === EMPTY
+          ) return true;
+        }
+        return false;
+      });
+      if (!tigerCanMove) {
+        statusEl.textContent = 'Kids win!';
+        winKidSound.play();
+        alert('Kids win!');
+        boardEl.onclick = null;
+      }
+    }
+
+    render();
+    statusEl.textContent = `${turn === TIGER ? 'Tiger' : 'Kid'}'s turn`;
+  </script>
+</body>
+</html>
+
