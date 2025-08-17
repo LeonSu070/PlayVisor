@@ -77,20 +77,26 @@
     <div class="grid-wrapper" id="carousel"></div>
   </div>
   <script>
+    function emojiIcon(symbol) {
+      return `data:image/svg+xml,${encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text x='50%' y='50%' font-size='48' text-anchor='middle' dominant-baseline='central'>${symbol}</text></svg>`
+      )}`;
+    }
+
     const games = [
-  { name: "First Game", img: "./pengyou.png", link: "./web-game/first-game/index.html" },
-  { name: "Super Mario", img: "https://cdn-icons-png.flaticon.com/512/854/854878.png", link: "./web-game/gameSuperMario/index.html" },
-  { name: "h5study", img: "https://cdn-icons-png.flaticon.com/512/1006/1006360.png", link: "./web-game/h5study/index.html" },
-  { name: "Snake", img: "https://cdn-icons-png.flaticon.com/512/3791/3791419.png", link: "./web-game/snake/index.html" },
-  { name: "second-game", img: "https://cdn-icons-png.flaticon.com/512/2897/2897492.png", link: "./web-game/second-game/index.html" },
-  { name: "SimpleGame", img: "./pengyou.png", link: "./web-game/SimpleGame/index.html" },
-  { name: "Super Mario Run", img: "https://cdn-icons-png.flaticon.com/512/1006/1006363.png", link: "./web-game/SuperMarioRun/index.html" },
-  { name: "third-game", img: "https://cdn-icons-png.flaticon.com/512/2264/2264783.png", link: "./web-game/third-game/index.html" },
-  { name: "tetris", img: "https://cdn-icons-png.flaticon.com/512/3602/3602123.png", link: "./web-game/tetris/index.html" },
-  { name: "Tower Defense", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "./web-game/tower-defense/index.html" },
-  { name: "Tiger and Kids", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "./web-game/tiger-kids/index.html" },
-  { name: "chess", img: "https://cdn-icons-png.flaticon.com/512/4406/4406234.png", link: "./web-game/chess/index.html" },
-];
+      { name: "First Game", img: "./web-game/first-game/assets/coin.png", link: "./web-game/first-game/index.html" },
+      { name: "Super Mario", img: "./super_mario_icon.svg", link: "./web-game/gameSuperMario/index.html" },
+      { name: "h5study", img: emojiIcon('📚'), link: "./web-game/h5study/index.html" },
+      { name: "Snake", img: emojiIcon('🐍'), link: "./web-game/snake/index.html" },
+      { name: "Second Game", img: "./web-game/second-game/assets/coin.png", link: "./web-game/second-game/index.html" },
+      { name: "SimpleGame", img: emojiIcon('🎮'), link: "./web-game/SimpleGame/index.html" },
+      { name: "Super Mario Run", img: "./super_mario_icon.svg", link: "./web-game/SuperMarioRun/index.html" },
+      { name: "Third Game", img: "./web-game/third-game/assets/bird.png", link: "./web-game/third-game/index.html" },
+      { name: "Tetris", img: emojiIcon('🧱'), link: "./web-game/tetris/index.html" },
+      { name: "Tower Defense", img: emojiIcon('🏰'), link: "./web-game/tower-defense/index.html" },
+      { name: "Tiger and Kids", img: emojiIcon('🐯'), link: "./web-game/tiger-kids/index.html" },
+      { name: "Chess", img: emojiIcon('♟️'), link: "./web-game/chess/index.html" },
+    ];
 
     let currentPage = 0;
     const carousel = document.getElementById('carousel');
