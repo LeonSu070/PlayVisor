@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太空跑酷 - Space Runner</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            border: 3px solid #4a90e2;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
+            background: #000;
+        }
+        
+        .game-title {
+            text-align: center;
+            color: #4a90e2;
+            font-size: 24px;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(74, 144, 226, 0.8);
+        }
+        
+        .controls {
+            text-align: center;
+            color: #fff;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="game-title">🚀 太空跑酷 - Space Runner</div>
+        <div class="controls">
+            按空格键跳跃 | 收集晶体获得分数 | 避开障碍物
+        </div>
+        <div id="game">
+            <div style="text-align: center; padding: 50px; color: #4a90e2;">
+                <h3>🚀 正在加载游戏...</h3>
+                <p>请稍候，游戏引擎正在初始化</p>
+                <div style="margin: 20px 0;">
+                    <div style="width: 200px; height: 4px; background: #1a1a2e; border-radius: 2px; margin: 0 auto;">
+                        <div id="loading-bar" style="width: 0%; height: 100%; background: #4a90e2; border-radius: 2px; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 引入本地Phaser.js -->
+    <script src="phaser.min.js"></script>
+    
+    <!-- 游戏加载脚本 -->
+    <script>
+        // 检查Phaser是否加载成功
+        if (typeof Phaser === 'undefined') {
+            console.error('Phaser.js加载失败');
+            showError();
+        } else {
+            console.log('Phaser.js加载成功，开始加载游戏...');
+            loadGame();
+        }
+        
+        function loadGame() {
+            // 显示加载进度
+            const loadingBar = document.getElementById('loading-bar');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                loadingBar.style.width = progress + '%';
+            }, 200);
+            
+            const script = document.createElement('script');
+            script.src = 'game.js';
+            script.onload = function() {
+                clearInterval(interval);
+                loadingBar.style.width = '100%';
+                setTimeout(() => {
+                    // 游戏加载完成后，在游戏画布上方添加HTML内容
+                    addGameOverlay();
+                }, 500);
+            };
+            script.onerror = function() {
+                clearInterval(interval);
+                showError();
+            };
+            document.head.appendChild(script);
+        }
+        
+        function addGameOverlay() {
+            // 在游戏画布上方添加HTML内容
+            const gameContainer = document.getElementById('game');
+            if (gameContainer) {
+                // 创建游戏信息面板
+                const infoPanel = document.createElement('div');
+                infoPanel.id = 'game-info-panel';
+                infoPanel.style.cssText = `
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 15px;
+                    border-radius: 8px;
+                    font-family: Arial, sans-serif;
+                    font-size: 14px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    border: 2px solid #4a90e2;
+                `;
+                infoPanel.innerHTML = `
+                    <div style="font-weight: bold; color: #4a90e2; margin-bottom: 8px;">🚀 太空跑酷</div>
+                    <div>状态: 等待开始</div>
+                    <div>操作: 空格键开始/跳跃</div>
+                    <div style="margin-top: 8px; font-size: 12px; color: #aaa;">游戏已加载完成</div>
+                `;
+                
+                gameContainer.appendChild(infoPanel);
+                
+                // 创建游戏控制提示
+                const controlHint = document.createElement('div');
+                controlHint.id = 'control-hint';
+                controlHint.style.cssText = `
+                    position: absolute;
+                    bottom: 20px;
+                    left: 20px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: #4a90e2;
+                    padding: 15px;
+                    border-radius: 8px;
+                    font-family: Arial, sans-serif;
+                    font-size: 16px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    border: 2px solid #4a90e2;
+                    font-weight: bold;
+                `;
+                controlHint.innerHTML = '🎮 按空格键开始游戏';
+                
+                gameContainer.appendChild(controlHint);
+                
+                console.log('HTML覆盖层已添加');
+            }
+        }
+        
+        function showError() {
+            document.getElementById('game').innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #ff4444;">
+                    <h2>❌ 游戏加载失败</h2>
+                    <p>Phaser.js游戏引擎加载失败</p>
+                    <p>请检查文件完整性或刷新页面重试</p>
+                    <button onclick="location.reload()" style="
+                        background: #4a90e2; 
+                        color: white; 
+                        border: none; 
+                        padding: 10px 20px; 
+                        border-radius: 5px; 
+                        cursor: pointer;
+                        margin-top: 20px;
+                    ">刷新页面</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
