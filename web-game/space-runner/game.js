@@ -26,6 +26,10 @@ class SpaceRunner extends Phaser.Scene {
         this.platformSpeed = 2;
         this.crystalSpawnRate = 2000;
         this.obstacleSpawnRate = 3000;
+        
+        // 玩家移动参数
+        this.playerSpeed = 200;
+        this.cursors = null;
     }
 
     preload() {
@@ -54,6 +58,9 @@ class SpaceRunner extends Phaser.Scene {
         // 设置碰撞
         this.setupCollisions();
         
+        // 设置输入控制
+        this.setupInput();
+        
         // 显示开始界面
         this.showStartScreen();
         
@@ -61,6 +68,21 @@ class SpaceRunner extends Phaser.Scene {
         this.addHTMLOverlay();
         
         console.log('🚀 游戏场景创建完成');
+    }
+    
+    setupInput() {
+        // 设置键盘输入控制
+        this.cursors = this.input.keyboard.createCursorKeys();
+        
+        // 添加WASD键支持
+        this.wasd = this.input.keyboard.addKeys({
+            up: 'W',
+            down: 'S',
+            left: 'A',
+            right: 'D'
+        });
+        
+        console.log('🚀 输入控制设置完成');
     }
     
     addHTMLOverlay() {
@@ -87,6 +109,7 @@ class SpaceRunner extends Phaser.Scene {
                 <div>🚀 太空跑酷</div>
                 <div>状态: 等待开始</div>
                 <div>操作: 空格键开始/跳跃</div>
+                <div>移动: 方向键或WASD</div>
             `;
             
             gameContainer.appendChild(infoPanel);
@@ -399,22 +422,29 @@ class SpaceRunner extends Phaser.Scene {
             strokeThickness: 2
         }).setOrigin(0.5);
         
+        this.add.text(400, 380, '使用方向键或WASD移动', {
+            fontSize: '20px',
+            fill: '#4a90e2',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
         // 游戏特色
-        this.add.text(400, 400, '🎯 收集绿色晶体获得分数', {
+        this.add.text(400, 420, '🎯 收集绿色晶体获得分数', {
             fontSize: '18px',
             fill: '#00ff88',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
         
-        this.add.text(400, 430, '⚠️ 避开红色障碍物', {
+        this.add.text(400, 450, '⚠️ 避开红色障碍物', {
             fontSize: '18px',
             fill: '#ff4444',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
         
-        this.add.text(400, 460, '🏆 挑战最高分记录', {
+        this.add.text(400, 480, '🏆 挑战最高分记录', {
             fontSize: '18px',
             fill: '#ffaa00',
             stroke: '#000000',
@@ -423,7 +453,7 @@ class SpaceRunner extends Phaser.Scene {
         
         // 最高分显示
         if (this.highScore > 0) {
-            this.add.text(400, 500, '最高分: ' + this.highScore, {
+            this.add.text(400, 520, '最高分: ' + this.highScore, {
                 fontSize: '22px',
                 fill: '#00ff88',
                 stroke: '#000000',
@@ -569,11 +599,12 @@ class SpaceRunner extends Phaser.Scene {
                 <div>状态: ${this.isGameStarted ? '游戏中' : '等待开始'}</div>
                 <div>分数: ${this.score}</div>
                 <div>操作: 空格键跳跃</div>
+                <div>移动: 方向键或WASD</div>
             `;
         }
         
         if (controlHint) {
-            controlHint.innerHTML = this.isGameStarted ? '游戏中 - 按空格键跳跃' : '按空格键开始游戏';
+            controlHint.innerHTML = this.isGameStarted ? '游戏中 - 空格键跳跃，方向键/WASD移动' : '按空格键开始游戏';
         }
     }
 
@@ -585,11 +616,43 @@ class SpaceRunner extends Phaser.Scene {
         // 检查游戏结束
         this.checkGameOver();
         
+        // 处理玩家移动
+        this.handlePlayerMovement();
+        
         // 处理跳跃
         this.handleJump();
         
         // 更新分数
         this.updateScore();
+    }
+    
+    handlePlayerMovement() {
+        // 处理玩家左右移动
+        let moveX = 0;
+        
+        // 检查方向键
+        if (this.cursors.left.isDown || this.wasd.left.isDown) {
+            moveX = -this.playerSpeed;
+        } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
+            moveX = this.playerSpeed;
+        }
+        
+        // 应用移动
+        if (moveX !== 0) {
+            this.player.body.setVelocityX(moveX);
+        } else {
+            // 停止移动时，逐渐减速
+            this.player.body.setVelocityX(this.player.body.velocity.x * 0.8);
+        }
+        
+        // 限制玩家在屏幕范围内
+        if (this.player.x < 20) {
+            this.player.x = 20;
+            this.player.body.setVelocityX(0);
+        } else if (this.player.x > 780) {
+            this.player.x = 780;
+            this.player.body.setVelocityX(0);
+        }
     }
 
     handleJump() {

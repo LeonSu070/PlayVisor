@@ -1,0 +1,136 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+#gameContainer {
+    position: relative;
+    text-align: center;
+}
+
+#ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+#ui > div {
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 15px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+#gameCanvas {
+    border: 3px solid #333;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+}
+
+#startScreen, #gameOver {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    backdrop-filter: blur(10px);
+    z-index: 20;
+}
+
+#startScreen h1 {
+    color: #333;
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#startScreen p {
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+#gameOver h2 {
+    color: #e74c3c;
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+#gameOver p {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+button {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 25px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Responsive design */
+@media (max-width: 850px) {
+    #gameCanvas {
+        width: 100vw;
+        height: 100vh;
+        border: none;
+        border-radius: 0;
+    }
+    
+    #ui {
+        top: 10px;
+        left: 10px;
+        font-size: 16px;
+    }
+    
+    #startScreen, #gameOver {
+        width: 90vw;
+        padding: 30px 20px;
+    }
+    
+    #startScreen h1 {
+        font-size: 36px;
+    }
+}

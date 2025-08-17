@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subway Surfers Clone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="ui">
+            <div id="score">Score: 0</div>
+            <div id="coins">Coins: 0</div>
+            <div id="distance">Distance: 0m</div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="gameOver" class="hidden">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Coins Collected: <span id="finalCoins">0</span></p>
+            <p>Distance: <span id="finalDistance">0</span>m</p>
+            <button id="restartBtn">Play Again</button>
+        </div>
+        
+        <div id="startScreen">
+            <h1>Subway Surfers</h1>
+            <p>Use A/D or ←/→ to move left/right</p>
+            <p>Use W or ↑ to jump</p>
+            <p>Use S or ↓ to slide</p>
+            <button id="startBtn">Start Game</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
