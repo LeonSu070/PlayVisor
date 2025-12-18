@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Rain</title>
+  <style>
+    :root {
+      --sky-top: #0a0f1d;
+      --sky-mid: #0f172a;
+      --sky-bottom: #0b1628;
+      --city: #0c1a2f;
+      --city-glow: rgba(88, 181, 255, 0.35);
+      --accent: #7dd3fc;
+      --accent-strong: #22d3ee;
+      --danger: #f43f5e;
+      --text: #e2e8f0;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-strong: rgba(255, 255, 255, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 30% 20%, rgba(45, 212, 191, 0.15), transparent 30%),
+                  radial-gradient(circle at 80% 10%, rgba(56, 189, 248, 0.12), transparent 28%),
+                  linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-bottom) 100%);
+      height: 100vh;
+      overflow: hidden;
+      letter-spacing: 0.01em;
+    }
+
+    #game {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .city {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)),
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240"><rect width="400" height="240" fill="%230c1a2f"/><g fill="%23112036"><rect x="10" y="80" width="70" height="160" rx="8"/><rect x="100" y="110" width="60" height="130" rx="6"/><rect x="180" y="60" width="90" height="180" rx="10"/><rect x="290" y="120" width="70" height="120" rx="8"/></g><g fill="%23254d73" opacity="0.6"><rect x="35" y="100" width="16" height="16" rx="2"/><rect x="210" y="90" width="16" height="16" rx="2"/><rect x="240" y="130" width="16" height="16" rx="2"/><rect x="320" y="150" width="16" height="16" rx="2"/><rect x="60" y="150" width="16" height="16" rx="2"/><rect x="130" y="140" width="16" height="16" rx="2"/></g></svg>') repeat-x bottom;
+      background-size: 800px auto;
+      filter: drop-shadow(0 -10px 40px rgba(34,211,238,0.18));
+      z-index: 1;
+    }
+
+    .rain-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(34, 211, 238, 0.04), transparent 60%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-strong);
+      z-index: 4;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-transform: uppercase;
+      font-size: 14px;
+    }
+
+    .stat-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .stat {
+      background: var(--glass-strong);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      min-width: 110px;
+    }
+
+    .stat span { display: block; font-size: 12px; opacity: 0.7; }
+    .stat strong { font-size: 18px; }
+
+    .lives {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .life-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-strong);
+      box-shadow: 0 0 12px rgba(34,211,238,0.6);
+      opacity: 0.8;
+    }
+
+    .life-dot.lost { background: rgba(244,63,94,0.5); box-shadow: none; opacity: 0.5; }
+
+    .drops {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .drop {
+      position: absolute;
+      padding: 10px 14px;
+      background: linear-gradient(180deg, rgba(34,211,238,0.2), rgba(34,211,238,0.05));
+      border: 1px solid rgba(125, 211, 252, 0.4);
+      border-radius: 999px;
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 14px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      transform: translateY(-60px);
+      transition: filter 0.2s ease;
+    }
+
+    .drop.target { filter: drop-shadow(0 6px 14px rgba(34, 211, 238, 0.65)); }
+    .drop .typed { color: var(--accent-strong); }
+    .drop .remaining { opacity: 0.75; }
+
+    .typed-bar {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 16px;
+      padding: 12px 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-strong);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      z-index: 4;
+      min-width: min(580px, 90vw);
+      justify-content: space-between;
+    }
+
+    .typed-bar .label { opacity: 0.65; font-size: 13px; }
+    .typed-bar .buffer { font-weight: 700; letter-spacing: 0.1em; color: var(--accent); }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 50% 35%, rgba(34, 211, 238, 0.16), rgba(10, 15, 29, 0.9));
+      z-index: 5;
+      transition: opacity 0.35s ease;
+    }
+
+    .overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .panel {
+      background: rgba(12, 26, 47, 0.9);
+      border: 1px solid rgba(125, 211, 252, 0.35);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+      border-radius: 18px;
+      padding: 26px 28px;
+      width: min(520px, 94vw);
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+
+    .panel h1 { margin: 0 0 8px; letter-spacing: 0.08em; color: var(--accent); }
+    .panel p { margin: 0 0 18px; opacity: 0.8; }
+
+    .controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+    .chip {
+      padding: 8px 12px;
+      background: var(--glass);
+      border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, 0.25);
+      font-size: 13px;
+    }
+
+    .cta {
+      margin-top: 16px;
+      background: linear-gradient(90deg, #22d3ee, #38bdf8);
+      color: #0b1324;
+      border: none;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 12px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(34, 211, 238, 0.35);
+    }
+
+    .cta:active { transform: translateY(1px); }
+
+    .notice { color: var(--danger); font-weight: 700; margin-bottom: 4px; }
+
+    .message { position: absolute; top: 72px; right: 16px; background: var(--glass); border: 1px solid var(--glass-strong); padding: 10px 12px; border-radius: 12px; font-size: 13px; opacity: 0; transition: opacity 0.3s ease; z-index: 4; }
+    .message.show { opacity: 1; }
+
+    @media (max-width: 640px) {
+      .hud { flex-direction: column; align-items: flex-start; }
+      .stat-row { width: 100%; }
+      .typed-bar { min-width: 94vw; bottom: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div class="city"></div>
+    <div class="rain-overlay"></div>
+
+    <div class="hud">
+      <div class="brand">⚡ Typing Rain</div>
+      <div class="stat-row">
+        <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+        <div class="stat"><span>Level</span><strong id="level">1</strong></div>
+        <div class="stat"><span>Accuracy</span><strong id="accuracy">100%</strong></div>
+        <div class="stat"><span>Lives</span><div class="lives" id="lives"></div></div>
+      </div>
+    </div>
+
+    <div class="drops" id="drops"></div>
+
+    <div class="typed-bar">
+      <div class="label">Typed Buffer</div>
+      <div class="buffer" id="typed">...</div>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <div class="panel">
+        <div class="notice" id="overlay-title">Typing Rain</div>
+        <h1>Keep the city streets dry</h1>
+        <p id="overlay-subtitle">Type the falling words before they hit the ground. Accuracy keeps your streak alive as the rain speeds up.</p>
+        <div class="controls">
+          <div class="chip">Type any falling word to clear it</div>
+          <div class="chip">Each correct letter boosts accuracy</div>
+          <div class="chip">Difficulty rises with your score</div>
+        </div>
+        <button class="cta" id="start-btn">Start the Storm</button>
+      </div>
+    </div>
+
+    <div class="message" id="message">Miss! Buffer reset.</div>
+  </div>
+
+  <script>
+    (() => {
+      const dropLayer = document.getElementById('drops');
+      const typedEl = document.getElementById('typed');
+      const scoreEl = document.getElementById('score');
+      const levelEl = document.getElementById('level');
+      const accuracyEl = document.getElementById('accuracy');
+      const livesEl = document.getElementById('lives');
+      const overlay = document.getElementById('overlay');
+      const overlayTitle = document.getElementById('overlay-title');
+      const overlaySubtitle = document.getElementById('overlay-subtitle');
+      const startBtn = document.getElementById('start-btn');
+      const missMessage = document.getElementById('message');
+      const game = document.getElementById('game');
+
+      const wordBank = [
+        'rain', 'city', 'typing', 'storm', 'glow', 'neon', 'arcade', 'pixel', 'swift', 'cycle', 'light', 'speed', 'signal', 'energy', 'matrix', 'cyber', 'ocean', 'meteor', 'rocket', 'cinder', 'ember', 'thrive', 'drift', 'pulse', 'focus', 'letter', 'syntax', 'script', 'charge', 'guardian', 'fusion', 'runner', 'shield', 'street', 'tower', 'signal', 'vector', 'tempo', 'tower', 'echo', 'flash', 'spark', 'shift'
+      ];
+
+      let drops = [];
+      let lastSpawn = 0;
+      let spawnInterval = 1700;
+      let lastFrame = performance.now();
+      let score = 0;
+      let level = 1;
+      let lives = 3;
+      let correctStrokes = 0;
+      let totalStrokes = 0;
+      let typedBuffer = '';
+      let activeTarget = null;
+      let running = false;
+
+      function buildLives() {
+        livesEl.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+          const dot = document.createElement('div');
+          dot.className = 'life-dot' + (i >= lives ? ' lost' : '');
+          livesEl.appendChild(dot);
+        }
+      }
+
+      function pickWord() {
+        return wordBank[Math.floor(Math.random() * wordBank.length)];
+      }
+
+      function renderWord(drop) {
+        const typed = drop.text.slice(0, drop.progress);
+        const remaining = drop.text.slice(drop.progress);
+        drop.el.innerHTML = `<span class="typed">${typed}</span><span class="remaining">${remaining}</span>`;
+      }
+
+      function spawnDrop() {
+        const text = pickWord();
+        const x = Math.random() * (game.clientWidth - 140) + 30;
+        const speed = (50 + Math.random() * 18) + level * 8;
+        const drop = {
+          text,
+          x,
+          y: -50,
+          speed,
+          progress: 0,
+          el: document.createElement('div')
+        };
+        drop.el.className = 'drop';
+        drop.el.style.transform = `translate(${drop.x}px, ${drop.y}px)`;
+        renderWord(drop);
+        dropLayer.appendChild(drop.el);
+        drops.push(drop);
+      }
+
+      function removeDrop(drop) {
+        dropLayer.removeChild(drop.el);
+        drops = drops.filter(d => d !== drop);
+        if (activeTarget === drop) {
+          activeTarget = null;
+          typedBuffer = '';
+          updateTyped();
+        }
+      }
+
+      function updateAccuracy() {
+        const accuracy = totalStrokes === 0 ? 100 : Math.round((correctStrokes / totalStrokes) * 100);
+        accuracyEl.textContent = `${accuracy}%`;
+      }
+
+      function updateHUD() {
+        scoreEl.textContent = score;
+        levelEl.textContent = level;
+        buildLives();
+        updateAccuracy();
+      }
+
+      function setDifficulty() {
+        level = Math.min(15, 1 + Math.floor(score / 120));
+        spawnInterval = Math.max(650, 1700 - (level - 1) * 100);
+      }
+
+      function selectCandidate(buffer) {
+        const lower = buffer.toLowerCase();
+        const candidates = drops.filter(d => d.text.toLowerCase().startsWith(lower));
+        if (!candidates.length) return null;
+        return candidates.reduce((closest, drop) => (drop.y > closest.y ? drop : closest));
+      }
+
+      function flashMessage() {
+        missMessage.classList.add('show');
+        setTimeout(() => missMessage.classList.remove('show'), 400);
+      }
+
+      function handleLetter(letter) {
+        if (!running) return;
+        totalStrokes++;
+
+        const attempt = typedBuffer + letter;
+        let candidate = activeTarget;
+
+        if (!candidate || !candidate.text.toLowerCase().startsWith(attempt.toLowerCase())) {
+          candidate = selectCandidate(attempt);
+        }
+
+        if (candidate) {
+          typedBuffer = attempt;
+          correctStrokes++;
+          activeTarget = candidate;
+          candidate.progress = typedBuffer.length;
+          activeTarget.el.classList.add('target');
+          renderWord(candidate);
+
+          if (typedBuffer.length === candidate.text.length) {
+            score += 10 + level;
+            setDifficulty();
+            removeDrop(candidate);
+            typedBuffer = '';
+          }
+        } else {
+          const restartCandidate = selectCandidate(letter);
+          if (restartCandidate) {
+            typedBuffer = letter;
+            correctStrokes++;
+            activeTarget = restartCandidate;
+            restartCandidate.progress = 1;
+            restartCandidate.el.classList.add('target');
+            renderWord(restartCandidate);
+          } else {
+            typedBuffer = '';
+            if (activeTarget) {
+              activeTarget.progress = 0;
+              renderWord(activeTarget);
+            }
+            activeTarget = null;
+            flashMessage();
+          }
+        }
+
+        drops.forEach(d => {
+          if (d !== activeTarget) {
+            d.progress = 0;
+            d.el.classList.remove('target');
+            renderWord(d);
+          }
+        });
+        updateTyped();
+        updateHUD();
+      }
+
+      function updateTyped() {
+        typedEl.textContent = typedBuffer || '...';
+      }
+
+      function tickDrops(delta) {
+        const limit = game.clientHeight - 80;
+        drops.forEach(drop => {
+          drop.y += drop.speed * delta;
+          drop.el.style.transform = `translate(${drop.x}px, ${drop.y}px)`;
+        });
+
+        const landed = drops.filter(drop => drop.y > limit);
+        landed.forEach(drop => {
+          removeDrop(drop);
+          lives -= 1;
+          updateHUD();
+          if (lives <= 0) {
+            endGame('Game Over', 'Raindrops flooded the streets. Try again!');
+          }
+        });
+      }
+
+      function loop(timestamp) {
+        if (!running) return;
+        const delta = (timestamp - lastFrame) / 1000;
+        lastFrame = timestamp;
+
+        tickDrops(delta);
+
+        if (timestamp - lastSpawn > spawnInterval) {
+          spawnDrop();
+          lastSpawn = timestamp;
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      function resetGame() {
+        drops.forEach(drop => dropLayer.removeChild(drop.el));
+        drops = [];
+        typedBuffer = '';
+        activeTarget = null;
+        score = 0;
+        lives = 3;
+        correctStrokes = 0;
+        totalStrokes = 0;
+        setDifficulty();
+        updateHUD();
+        updateTyped();
+        overlay.classList.add('hidden');
+      }
+
+      function startGame() {
+        resetGame();
+        running = true;
+        lastFrame = performance.now();
+        lastSpawn = 0;
+        spawnDrop();
+        requestAnimationFrame(loop);
+      }
+
+      function endGame(title, subtitle) {
+        running = false;
+        overlayTitle.textContent = title;
+        overlaySubtitle.textContent = subtitle;
+        overlay.classList.remove('hidden');
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          e.preventDefault();
+          typedBuffer = typedBuffer.slice(0, -1);
+          if (activeTarget) {
+            activeTarget.progress = typedBuffer.length;
+            renderWord(activeTarget);
+          }
+          updateTyped();
+          return;
+        }
+
+        if (!running && e.key === 'Enter') {
+          startGame();
+          return;
+        }
+
+        if (/^[a-zA-Z]$/.test(e.key)) {
+          handleLetter(e.key.toLowerCase());
+        }
+      });
+
+      startBtn.addEventListener('click', startGame);
+
+      // Kick off with overlay visible but ready to play.
+      buildLives();
+      updateAccuracy();
+      updateTyped();
+    })();
+  </script>
+</body>
+</html>
