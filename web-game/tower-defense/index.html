@@ -21,9 +21,9 @@
       background: #eee;
       border: 2px solid black;
       margin-top: 10px;
-      width: min(100%, 800px);
+      width: min(100%, 400px);
       height: auto;
-      aspect-ratio: 8 / 5;
+      aspect-ratio: 1 / 2;
       touch-action: none;
     }
     .controls {
@@ -72,10 +72,10 @@
     <div>❤️ Lives: <span id="lives">5</span></div>
     <div>🎓 Wave: <span id="wave">1</span></div>
   </div>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <canvas id="gameCanvas" width="400" height="800"></canvas>
   <script>
-    const baseWidth = 800;
-    const baseHeight = 600;
+    const baseWidth = 400;
+    const baseHeight = 800;
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const moneyEl = document.getElementById("money");
@@ -89,8 +89,8 @@
     let selectedTowerType = null, towers = [], bullets = [], enemies = [], waveQueue = [], waveTimer = 0;
 
     const waypoints = [
-      {x: 0, y: 300}, {x: 150, y: 300}, {x: 150, y: 120},
-      {x: 400, y: 120}, {x: 400, y: 420}, {x: 800, y: 420}
+      {x: 0, y: 400}, {x: 100, y: 400}, {x: 100, y: 100},
+      {x: 300, y: 100}, {x: 300, y: 700}, {x: 400, y: 700}
     ];
 
     const towerTypes = [
@@ -204,7 +204,7 @@
 
       for (let b of bullets) {
         const dx = b.target.x - b.x, dy = b.target.y - b.y, dist = Math.hypot(dx, dy);
-        if (dist < 5) {
+        if (dist < 8) {
           b.target.hp -= b.damage;
           if (b.tower.effect) {
             b.target.effects[b.tower.effect] = 90;
@@ -253,7 +253,7 @@
     function draw() {
       ctx.clearRect(0, 0, baseWidth, baseHeight);
       ctx.strokeStyle = "#ccc";
-      ctx.lineWidth = 36;
+      ctx.lineWidth = 50;
       ctx.beginPath();
       ctx.moveTo(waypoints[0].x, waypoints[0].y);
       for (let wp of waypoints) ctx.lineTo(wp.x, wp.y);
@@ -261,11 +261,11 @@
 
       for (let e of enemies) {
         ctx.fillStyle = e.color;
-        ctx.fillRect(e.x - 10, e.y - 10, 20, 20);
+        ctx.fillRect(e.x - 15, e.y - 15, 30, 30);
         ctx.fillStyle = "red";
-        ctx.fillRect(e.x - 10, e.y - 15, 20, 3);
+        ctx.fillRect(e.x - 15, e.y - 22, 30, 4);
         ctx.fillStyle = "green";
-        ctx.fillRect(e.x - 10, e.y - 15, 20 * (e.hp / e.maxHp), 3);
+        ctx.fillRect(e.x - 15, e.y - 22, 30 * (e.hp / e.maxHp), 4);
       }
 
       for (let t of towers) {
@@ -278,7 +278,7 @@
       for (let b of bullets) {
         ctx.fillStyle = "black";
         ctx.beginPath();
-        ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+        ctx.arc(b.x, b.y, 7, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -292,7 +292,7 @@
       update();
       draw();
       if (lives > 0) requestAnimationFrame(gameLoop);
-      else ctx.fillText("Game Over", 350, 250);
+      else ctx.fillText("Game Over", 150, 400);
     }
 
     function handlePlaceTower(e) {
