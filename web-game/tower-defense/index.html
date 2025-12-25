@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Ultimate Tower Defense</title>
   <style>
     body {
@@ -25,6 +25,8 @@
       height: auto;
       aspect-ratio: 1 / 2;
       touch-action: none;
+      -ms-touch-action: none;
+      -webkit-touch-callout: none;
     }
     .controls {
       margin-top: 10px;
@@ -340,6 +342,21 @@
     }
 
     canvas.addEventListener("pointerdown", handlePlaceTower);
+    
+    // Prevent double-tap zoom
+    let lastTap = 0;
+    canvas.addEventListener("touchend", function(e) {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 300 && tapLength > 0) {
+        e.preventDefault();
+      }
+      lastTap = currentTime;
+    });
+    
+    canvas.addEventListener("dblclick", function(e) {
+      e.preventDefault();
+    });
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
