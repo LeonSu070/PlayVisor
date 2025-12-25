@@ -35,7 +35,7 @@
   <div class="controls" id="buttons"></div>
   <div>
     💰 Money: $<span id="money">1000</span>
-    ❤️ Lives: <span id="lives">10</span>
+    ❤️ Lives: <span id="lives">5</span>
     🎓 Wave: <span id="wave">1</span>
     
   </div>
@@ -48,7 +48,7 @@
     const waveEl = document.getElementById("wave");
     const buttonsDiv = document.getElementById("buttons");
 
-    let money = 1000, lives = 10, wave = 1, waveInProgress = false;
+    let money = 1000, lives = 5, wave = 1, waveInProgress = false;
     let selectedTowerType = null, towers = [], bullets = [], enemies = [], waveQueue = [], waveTimer = 0;
 
     const waypoints = [
