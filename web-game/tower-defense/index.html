@@ -94,9 +94,40 @@
     ];
 
     const towerTypes = [
+      // Basic Tower - Blue
+      // Price: $30 (cheapest)
+      // Range: 80 (medium)
+      // Damage: 0.5 (medium)
+      // Attack Speed: 60 frames (1 second)
+      // Best for: Balanced performance, good value
       {name: "Basic", cost: 30, range: 80, damage: 0.5, cooldown: 60, color: "blue"},
-      {name: "Sniper", cost: 50, range: 150, damage: 1.2, cooldown: 90, color: "green"},
+      
+      // Sniper Tower - Green
+      // Price: $50
+      // Range: 150 (longest)
+      // Damage: 1.2 (highest)
+      // Attack Speed: 90 frames (1.5 seconds, slowest)
+      // Best for: High damage, long range, good against high HP enemies
+      {name: "Sniper", cost: 50, range: 150, damage: 1.2, cooldown: 90, color: "purple"},
+      
+      // Rapid Tower - Red
+      // Price: $40
+      // Range: 70 (shortest)
+      // Damage: 0.3 (lowest)
+      // Attack Speed: 20 frames (0.33 seconds, fastest)
+      // Best for: High attack speed, good against fast-moving enemies
       {name: "Rapid", cost: 40, range: 70, damage: 0.3, cooldown: 20, color: "red"},
+      
+      // Poison Tower - Dark Green
+      // Price: $80 (most expensive)
+      // Range: 100 (medium-high)
+      // Damage: 0.3 (low)
+      // Attack Speed: 70 frames (1.17 seconds)
+      // Special Effect: Poison DoT (Damage over Time)
+      //   - Poisons enemy for 90 frames (1.5 seconds) on hit
+      //   - Deals 0.05 damage per frame while poisoned
+      //   - Total DoT: ~4.5 damage
+      // Best for: Continuous damage, effective against high HP enemies
       {name: "Poison", cost: 80, range: 100, damage: 0.3, cooldown: 70, effect: "poison", color: "darkgreen"}
     ];
 
