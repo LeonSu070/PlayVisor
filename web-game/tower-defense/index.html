@@ -16,6 +16,10 @@
       min-height: 100svh;
       padding: 12px;
       box-sizing: border-box;
+      touch-action: manipulation;
+      -ms-touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
     }
     canvas {
       background: #eee;
@@ -343,20 +347,59 @@
 
     canvas.addEventListener("pointerdown", handlePlaceTower);
     
-    // Prevent double-tap zoom
+    // Prevent double-tap zoom - comprehensive approach
     let lastTap = 0;
-    canvas.addEventListener("touchend", function(e) {
+    
+    function preventDoubleTap(e) {
       const currentTime = new Date().getTime();
       const tapLength = currentTime - lastTap;
+      
       if (tapLength < 300 && tapLength > 0) {
         e.preventDefault();
+        e.stopPropagation();
+        return false;
       }
+      
       lastTap = currentTime;
-    });
+    }
     
+    // Prevent double-tap on canvas
+    canvas.addEventListener("touchend", preventDoubleTap, {passive: false});
+    canvas.addEventListener("touchstart", function(e) {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, {passive: false});
     canvas.addEventListener("dblclick", function(e) {
       e.preventDefault();
+      e.stopPropagation();
+      return false;
     });
+    
+    // Prevent gesture events (iOS Safari)
+    canvas.addEventListener("gesturestart", function(e) {
+      e.preventDefault();
+    });
+    canvas.addEventListener("gesturechange", function(e) {
+      e.preventDefault();
+    });
+    canvas.addEventListener("gestureend", function(e) {
+      e.preventDefault();
+    });
+    
+    // Prevent zoom on document level
+    document.addEventListener("touchstart", function(e) {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+    
+    document.addEventListener("touchend", function(e) {
+      const now = new Date().getTime();
+      if (now - lastTap < 300) {
+        e.preventDefault();
+      }
+    }, {passive: false});
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
