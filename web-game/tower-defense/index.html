@@ -25,9 +25,9 @@
       background: #eee;
       border: 2px solid black;
       margin-top: 10px;
-      width: min(100%, 400px);
+      width: min(100%, 500px);
       height: auto;
-      aspect-ratio: 1 / 2;
+      aspect-ratio: 5 / 8;
       touch-action: none;
       -ms-touch-action: none;
       -webkit-touch-callout: none;
@@ -78,9 +78,9 @@
     <div>❤️ Lives: <span id="lives">5</span></div>
     <div>🎓 Wave: <span id="wave">1</span></div>
   </div>
-  <canvas id="gameCanvas" width="400" height="800"></canvas>
+  <canvas id="gameCanvas" width="500" height="800"></canvas>
   <script>
-    const baseWidth = 400;
+    const baseWidth = 500;
     const baseHeight = 800;
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -96,7 +96,7 @@
 
     const waypoints = [
       {x: 0, y: 400}, {x: 100, y: 400}, {x: 100, y: 100},
-      {x: 300, y: 100}, {x: 300, y: 700}, {x: 400, y: 700}
+      {x: 300, y: 100}, {x: 300, y: 700}, {x: 500, y: 700}
     ];
 
     const towerTypes = [
@@ -329,7 +329,7 @@
       update();
       draw();
       if (lives > 0) requestAnimationFrame(gameLoop);
-      else ctx.fillText("Game Over", 150, 400);
+      else ctx.fillText("Game Over", 200, 400);
     }
 
     function handlePlaceTower(e) {
