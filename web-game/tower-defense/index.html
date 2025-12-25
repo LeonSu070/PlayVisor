@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Ultimate Tower Defense</title>
   <style>
     body {
@@ -12,41 +13,63 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-height: 100vh;
+      padding: 12px;
+      box-sizing: border-box;
     }
     canvas {
       background: #eee;
       border: 2px solid black;
       margin-top: 10px;
+      width: min(100%, 800px);
+      height: auto;
+      aspect-ratio: 8 / 5;
+      touch-action: none;
     }
     .controls {
       margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
     }
     button {
       margin: 2px;
-      padding: 6px 10px;
-      font-size: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
       border: none;
       color: white;
       cursor: pointer;
+      border-radius: 6px;
+    }
+    .stats {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <div class="controls" id="buttons"></div>
-  <div>
-    💰 Money: $<span id="money">1000</span>
-    ❤️ Lives: <span id="lives">5</span>
-    🎓 Wave: <span id="wave">1</span>
-    
+  <div class="stats">
+    <div>💰 Money: $<span id="money">1000</span></div>
+    <div>❤️ Lives: <span id="lives">5</span></div>
+    <div>🎓 Wave: <span id="wave">1</span></div>
   </div>
   <canvas id="gameCanvas" width="800" height="500"></canvas>
   <script>
+    const baseWidth = 800;
+    const baseHeight = 500;
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const moneyEl = document.getElementById("money");
     const livesEl = document.getElementById("lives");
     const waveEl = document.getElementById("wave");
     const buttonsDiv = document.getElementById("buttons");
+    let canvasScale = 1;
 
     let money = 1000, lives = 5, wave = 1, waveInProgress = false;
     let selectedTowerType = null, towers = [], bullets = [], enemies = [], waveQueue = [], waveTimer = 0;
@@ -189,8 +212,21 @@
       bullets = bullets.filter(b => !b.hit);
     }
 
+    function resizeCanvas() {
+      const maxWidth = Math.min(window.innerWidth - 24, baseWidth);
+      const displayWidth = Math.max(320, maxWidth);
+      const displayHeight = displayWidth * (baseHeight / baseWidth);
+      const dpr = window.devicePixelRatio || 1;
+      canvas.style.width = `${displayWidth}px`;
+      canvas.style.height = `${displayHeight}px`;
+      canvas.width = Math.round(displayWidth * dpr);
+      canvas.height = Math.round(displayHeight * dpr);
+      canvasScale = displayWidth / baseWidth;
+      ctx.setTransform(canvasScale * dpr, 0, 0, canvasScale * dpr, 0, 0);
+    }
+
     function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, baseWidth, baseHeight);
       ctx.strokeStyle = "#ccc";
       ctx.lineWidth = 30;
       ctx.beginPath();
@@ -223,7 +259,7 @@
     }
 
     let firstWaveDelay = 300;
-function gameLoop() {
+    function gameLoop() {
       if (wave === 1 && !waveInProgress && firstWaveDelay > 0) {
         firstWaveDelay--;
         if (firstWaveDelay === 0) startWave();
@@ -234,17 +270,23 @@ function gameLoop() {
       else ctx.fillText("Game Over", 350, 250);
     }
 
-    canvas.addEventListener("click", e => {
+    function handlePlaceTower(e) {
+      e.preventDefault();
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const x = (e.clientX - rect.left) * (baseWidth / rect.width);
+      const y = (e.clientY - rect.top) * (baseHeight / rect.height);
       const type = towerTypes[selectedTowerType];
       if (type && money >= type.cost) {
         towers.push({x, y, range: type.range, damage: type.damage, cooldown: 0, cooldownMax: type.cooldown, color: type.color, ...type});
         money -= type.cost;
         moneyEl.innerText = money;
       }
-    });
+    }
+
+    canvas.addEventListener("pointerdown", handlePlaceTower);
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
     gameLoop();
   </script>
