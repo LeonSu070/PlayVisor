@@ -13,7 +13,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
+      min-height: 100svh;
       padding: 12px;
       box-sizing: border-box;
     }
@@ -50,6 +50,19 @@
       justify-content: center;
       font-size: 14px;
     }
+    @media (max-width: 600px) {
+      body {
+        padding: 8px;
+      }
+      .controls {
+        margin-top: 6px;
+        gap: 4px;
+      }
+      .stats {
+        margin-top: 6px;
+        gap: 8px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -59,24 +72,25 @@
     <div>❤️ Lives: <span id="lives">5</span></div>
     <div>🎓 Wave: <span id="wave">1</span></div>
   </div>
-  <canvas id="gameCanvas" width="800" height="500"></canvas>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
   <script>
     const baseWidth = 800;
-    const baseHeight = 500;
+    const baseHeight = 600;
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const moneyEl = document.getElementById("money");
     const livesEl = document.getElementById("lives");
     const waveEl = document.getElementById("wave");
     const buttonsDiv = document.getElementById("buttons");
+    const statsDiv = document.querySelector(".stats");
     let canvasScale = 1;
 
     let money = 1000, lives = 5, wave = 1, waveInProgress = false;
     let selectedTowerType = null, towers = [], bullets = [], enemies = [], waveQueue = [], waveTimer = 0;
 
     const waypoints = [
-      {x: 0, y: 250}, {x: 150, y: 250}, {x: 150, y: 100},
-      {x: 400, y: 100}, {x: 400, y: 350}, {x: 800, y: 350}
+      {x: 0, y: 300}, {x: 150, y: 300}, {x: 150, y: 120},
+      {x: 400, y: 120}, {x: 400, y: 420}, {x: 800, y: 420}
     ];
 
     const towerTypes = [
@@ -214,8 +228,19 @@
 
     function resizeCanvas() {
       const maxWidth = Math.min(window.innerWidth - 24, baseWidth);
-      const displayWidth = Math.max(320, maxWidth);
-      const displayHeight = displayWidth * (baseHeight / baseWidth);
+      const controlsHeight = buttonsDiv.getBoundingClientRect().height;
+      const statsHeight = statsDiv.getBoundingClientRect().height;
+      const verticalPadding = 32;
+      const maxHeight = Math.max(
+        320,
+        window.innerHeight - controlsHeight - statsHeight - verticalPadding
+      );
+      let displayWidth = Math.max(320, maxWidth);
+      let displayHeight = displayWidth * (baseHeight / baseWidth);
+      if (displayHeight > maxHeight) {
+        displayHeight = maxHeight;
+        displayWidth = displayHeight * (baseWidth / baseHeight);
+      }
       const dpr = window.devicePixelRatio || 1;
       canvas.style.width = `${displayWidth}px`;
       canvas.style.height = `${displayHeight}px`;
@@ -228,7 +253,7 @@
     function draw() {
       ctx.clearRect(0, 0, baseWidth, baseHeight);
       ctx.strokeStyle = "#ccc";
-      ctx.lineWidth = 30;
+      ctx.lineWidth = 36;
       ctx.beginPath();
       ctx.moveTo(waypoints[0].x, waypoints[0].y);
       for (let wp of waypoints) ctx.lineTo(wp.x, wp.y);
