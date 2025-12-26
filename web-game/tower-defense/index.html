@@ -93,6 +93,7 @@
 
     let money = 1000, lives = 5, wave = 1, waveInProgress = false;
     let selectedTowerType = null, towers = [], bullets = [], enemies = [], waveQueue = [], waveTimer = 0;
+    let gameOver = false;
 
     const waypoints = [
       {x: 0, y: 400}, {x: 100, y: 400}, {x: 100, y: 100},
@@ -144,6 +145,19 @@
       btn.onclick = () => selectedTowerType = i;
       buttonsDiv.appendChild(btn);
     });
+
+    const restartButton = document.createElement("button");
+    restartButton.innerText = "Restart";
+    restartButton.style.backgroundColor = "#555";
+    restartButton.style.display = "none";
+    restartButton.disabled = true;
+    restartButton.addEventListener("click", () => {
+      restartButton.disabled = true;
+      restartButton.style.display = "none";
+      resetGame();
+      gameLoop();
+    });
+    buttonsDiv.appendChild(restartButton);
 
     function startWave() {
       if (waveInProgress) return;
@@ -328,8 +342,41 @@
       }
       update();
       draw();
-      if (lives > 0) requestAnimationFrame(gameLoop);
-      else ctx.fillText("Game Over", 200, 400);
+      if (lives > 0) {
+        requestAnimationFrame(gameLoop);
+      } else {
+        ctx.save();
+        ctx.font = "bold 48px sans-serif";
+        ctx.fillStyle = "#111";
+        ctx.textAlign = "center";
+        ctx.fillText("Game Over", baseWidth / 2, baseHeight / 2);
+        ctx.restore();
+        showGameOver();
+      }
+    }
+
+    function showGameOver() {
+      gameOver = true;
+      restartButton.style.display = "inline-block";
+      restartButton.disabled = false;
+    }
+
+    function resetGame() {
+      money = 1000;
+      lives = 5;
+      wave = 1;
+      waveInProgress = false;
+      waveQueue = [];
+      enemies = [];
+      bullets = [];
+      towers = [];
+      waveTimer = 0;
+      waveDelay = 300;
+      firstWaveDelay = 300;
+      gameOver = false;
+      moneyEl.innerText = money;
+      livesEl.innerText = lives;
+      waveEl.innerText = wave;
     }
 
     const roadHalfWidth = 25;
@@ -361,6 +408,13 @@
       return true;
     }
 
+    function removeTower(tower) {
+      const index = towers.indexOf(tower);
+      if (index !== -1) {
+        towers.splice(index, 1);
+      }
+    }
+
     function findTowerAt(x, y) {
       return towers.find(t => Math.hypot(t.x - x, t.y - y) <= getTowerRadius(t));
     }
@@ -388,12 +442,17 @@
     }
 
     function handlePlaceTower(e) {
+      if (gameOver || lives <= 0) return;
       e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) * (baseWidth / rect.width);
       const y = (e.clientY - rect.top) * (baseHeight / rect.height);
       const clickedTower = findTowerAt(x, y);
       if (clickedTower) {
+        if (clickedTower.level >= maxTowerLevel) {
+          removeTower(clickedTower);
+          return;
+        }
         upgradeTower(clickedTower);
         return;
       }
