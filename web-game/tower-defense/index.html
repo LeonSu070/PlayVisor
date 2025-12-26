@@ -308,7 +308,7 @@
       for (let t of towers) {
         ctx.fillStyle = t.color;
         ctx.beginPath();
-        ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
+        ctx.arc(t.x, t.y, getTowerRadius(t), 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -332,14 +332,88 @@
       else ctx.fillText("Game Over", 200, 400);
     }
 
+    const roadHalfWidth = 25;
+    const maxTowerLevel = 3;
+    const maxTowerCount = 100;
+    const baseTowerRadius = 10;
+    const upgradeSizeStep = 3;
+    const upgradeRangePercent = 0.15;
+    const upgradeDamagePercent = 0.25;
+
+    function getTowerRadius(tower) {
+      return baseTowerRadius + tower.level * upgradeSizeStep;
+    }
+
+    function getTowerUpgradeCost(tower) {
+      const baseCost = tower.cost || 30;
+      return Math.ceil(baseCost * (0.6 + tower.level * 0.25));
+    }
+
+    function upgradeTower(tower) {
+      if (tower.level >= maxTowerLevel) return false;
+      const cost = getTowerUpgradeCost(tower);
+      if (money < cost) return false;
+      money -= cost;
+      moneyEl.innerText = money;
+      tower.level++;
+      tower.range = tower.baseRange * (1 + tower.level * upgradeRangePercent);
+      tower.damage = tower.baseDamage * (1 + tower.level * upgradeDamagePercent);
+      return true;
+    }
+
+    function findTowerAt(x, y) {
+      return towers.find(t => Math.hypot(t.x - x, t.y - y) <= getTowerRadius(t));
+    }
+
+    function distanceToSegment(px, py, x1, y1, x2, y2) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+      const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
+      const projX = x1 + t * dx;
+      const projY = y1 + t * dy;
+      return Math.hypot(px - projX, py - projY);
+    }
+
+    function isPointOnRoad(x, y) {
+      for (let i = 0; i < waypoints.length - 1; i++) {
+        const wp0 = waypoints[i];
+        const wp1 = waypoints[i + 1];
+        if (distanceToSegment(x, y, wp0.x, wp0.y, wp1.x, wp1.y) <= roadHalfWidth) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     function handlePlaceTower(e) {
       e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) * (baseWidth / rect.width);
       const y = (e.clientY - rect.top) * (baseHeight / rect.height);
+      const clickedTower = findTowerAt(x, y);
+      if (clickedTower) {
+        upgradeTower(clickedTower);
+        return;
+      }
+      if (isPointOnRoad(x, y)) return;
+      if (towers.length >= maxTowerCount) return;
       const type = towerTypes[selectedTowerType];
       if (type && money >= type.cost) {
-        towers.push({x, y, range: type.range, damage: type.damage, cooldown: 0, cooldownMax: type.cooldown, color: type.color, ...type});
+        towers.push({
+          x,
+          y,
+          range: type.range,
+          damage: type.damage,
+          baseRange: type.range,
+          baseDamage: type.damage,
+          cooldown: 0,
+          cooldownMax: type.cooldown,
+          level: 0,
+          color: type.color,
+          ...type
+        });
         money -= type.cost;
         moneyEl.innerText = money;
       }
