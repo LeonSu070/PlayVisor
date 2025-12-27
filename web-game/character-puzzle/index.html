@@ -73,6 +73,7 @@
       background: transparent;
       box-shadow: none;
       cursor: default;
+      color: rgba(176, 68, 47, 0.35);
     }
 
     .controls {
@@ -138,7 +139,7 @@
 </head>
 <body>
   <div class="game-shell">
-    <div class="title">成语拼字</div>
+    <div class="title">数字滑块</div>
     <div id="board" class="board"></div>
     <div class="controls">
       <div class="status" id="status">步数：0</div>
@@ -147,16 +148,16 @@
         <button id="reset" class="secondary">复位</button>
       </div>
     </div>
-    <div class="tip">点击相邻字块滑动，复原成“正天直私长邦安兴气费心众虹万国”。</div>
+    <div class="tip">点击相邻数字滑动，复原成 1-16 的顺序。</div>
     <div id="winBanner" class="win-banner">完成！你还原了整盘字块。</div>
   </div>
 
   <script>
     const tiles = [
-      "正", "天", "直", "私",
-      "长", "邦", "安", "兴",
-      "气", "费", "心", "众",
-      "虹", "万", "国"
+      "1", "2", "3", "4",
+      "5", "6", "7", "8",
+      "9", "10", "11", "12",
+      "13", "14", "15"
     ];
 
     const solved = [...tiles, ""];
@@ -175,7 +176,7 @@
       state.forEach((value, index) => {
         const tile = document.createElement("button");
         tile.className = "tile" + (value === "" ? " empty" : "");
-        tile.textContent = value;
+        tile.textContent = value === "" ? "16" : value;
         tile.setAttribute("data-index", index);
         tile.disabled = value === "";
         tile.addEventListener("click", () => attemptMove(index));
