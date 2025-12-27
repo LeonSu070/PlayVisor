@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>汉字滑块</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f4f1e4;
+    }
+
+    .game-shell {
+      width: min(92vw, 420px);
+      background: #f3c300;
+      border-radius: 28px;
+      padding: 28px 24px 32px;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18);
+      position: relative;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #b03b27;
+      letter-spacing: 6px;
+      margin-bottom: 18px;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    .board {
+      background: #f5cc42;
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      box-shadow: inset 0 4px 8px rgba(255, 255, 255, 0.45);
+    }
+
+    .tile {
+      aspect-ratio: 1 / 1;
+      border-radius: 8px;
+      border: none;
+      background: #fffdf9;
+      color: #b0442f;
+      font-size: clamp(20px, 6vw, 32px);
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 0 rgba(176, 68, 47, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .tile:active {
+      transform: scale(0.98);
+      box-shadow: 0 1px 0 rgba(176, 68, 47, 0.2);
+    }
+
+    .tile.empty {
+      background: transparent;
+      box-shadow: none;
+      cursor: default;
+      color: rgba(176, 68, 47, 0.35);
+    }
+
+    .controls {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      color: #7b321f;
+      font-size: 14px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .buttons button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      background: #b0442f;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(176, 68, 47, 0.3);
+    }
+
+    .buttons button.secondary {
+      background: #6b3c2d;
+    }
+
+    .tip {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #7b321f;
+      text-align: center;
+    }
+
+    .win-banner {
+      position: absolute;
+      inset: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 16px;
+      font-size: 20px;
+      color: #b0442f;
+      font-weight: 700;
+    }
+
+    .win-banner.show {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-shell">
+    <div class="title">Number Slide</div>
+    <div id="board" class="board"></div>
+    <div class="controls">
+      <div class="status" id="status">Moves: 0</div>
+      <div class="buttons">
+        <button id="shuffle">Shuffle</button>
+        <button id="reset" class="secondary">Reset</button>
+      </div>
+    </div>
+    <div class="tip">Tap adjacent tiles to restore the 1-16 order.</div>
+    <div id="winBanner" class="win-banner">Solved! You restored the puzzle.</div>
+  </div>
+
+  <script>
+    const tiles = [
+      "1", "2", "3", "4",
+      "5", "6", "7", "8",
+      "9", "10", "11", "12",
+      "13", "14", "15"
+    ];
+
+    const solved = [...tiles, ""];
+    let state = [...solved];
+    let moves = 0;
+    let isSolved = true;
+
+    const board = document.getElementById("board");
+    const status = document.getElementById("status");
+    const winBanner = document.getElementById("winBanner");
+    const shuffleButton = document.getElementById("shuffle");
+    const resetButton = document.getElementById("reset");
+
+    function render() {
+      board.innerHTML = "";
+      state.forEach((value, index) => {
+        const tile = document.createElement("button");
+        tile.className = "tile" + (value === "" ? " empty" : "");
+        tile.textContent = value === "" ? "16" : value;
+        tile.setAttribute("data-index", index);
+        tile.disabled = value === "";
+        tile.addEventListener("click", () => attemptMove(index));
+        board.appendChild(tile);
+      });
+      status.textContent = `Moves: ${moves}`;
+      winBanner.classList.toggle("show", isSolved && moves > 0);
+    }
+
+    function attemptMove(index) {
+      if (isSolved) {
+        isSolved = false;
+      }
+      const emptyIndex = state.indexOf("");
+      const row = Math.floor(index / 4);
+      const col = index % 4;
+      const emptyRow = Math.floor(emptyIndex / 4);
+      const emptyCol = emptyIndex % 4;
+      const isAdjacent = Math.abs(row - emptyRow) + Math.abs(col - emptyCol) === 1;
+
+      if (!isAdjacent) {
+        return;
+      }
+
+      [state[index], state[emptyIndex]] = [state[emptyIndex], state[index]];
+      moves += 1;
+      isSolved = state.every((value, idx) => value === solved[idx]);
+      render();
+    }
+
+    function shuffle(times = 160) {
+      state = [...solved];
+      moves = 0;
+      isSolved = false;
+      let emptyIndex = state.indexOf("");
+
+      for (let i = 0; i < times; i += 1) {
+        const row = Math.floor(emptyIndex / 4);
+        const col = emptyIndex % 4;
+        const neighbors = [];
+        if (row > 0) neighbors.push(emptyIndex - 4);
+        if (row < 3) neighbors.push(emptyIndex + 4);
+        if (col > 0) neighbors.push(emptyIndex - 1);
+        if (col < 3) neighbors.push(emptyIndex + 1);
+        const nextIndex = neighbors[Math.floor(Math.random() * neighbors.length)];
+        [state[emptyIndex], state[nextIndex]] = [state[nextIndex], state[emptyIndex]];
+        emptyIndex = nextIndex;
+      }
+
+      render();
+    }
+
+    shuffleButton.addEventListener("click", () => shuffle());
+    resetButton.addEventListener("click", () => {
+      state = [...solved];
+      moves = 0;
+      isSolved = true;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
