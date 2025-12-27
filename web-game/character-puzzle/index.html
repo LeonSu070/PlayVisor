@@ -139,17 +139,17 @@
 </head>
 <body>
   <div class="game-shell">
-    <div class="title">数字滑块</div>
+    <div class="title">Number Slide</div>
     <div id="board" class="board"></div>
     <div class="controls">
-      <div class="status" id="status">步数：0</div>
+      <div class="status" id="status">Moves: 0</div>
       <div class="buttons">
-        <button id="shuffle">重新洗牌</button>
-        <button id="reset" class="secondary">复位</button>
+        <button id="shuffle">Shuffle</button>
+        <button id="reset" class="secondary">Reset</button>
       </div>
     </div>
-    <div class="tip">点击相邻数字滑动，复原成 1-16 的顺序。</div>
-    <div id="winBanner" class="win-banner">完成！你还原了整盘字块。</div>
+    <div class="tip">Tap adjacent tiles to restore the 1-16 order.</div>
+    <div id="winBanner" class="win-banner">Solved! You restored the puzzle.</div>
   </div>
 
   <script>
@@ -182,7 +182,7 @@
         tile.addEventListener("click", () => attemptMove(index));
         board.appendChild(tile);
       });
-      status.textContent = `步数：${moves}`;
+      status.textContent = `Moves: ${moves}`;
       winBanner.classList.toggle("show", isSolved && moves > 0);
     }
 
