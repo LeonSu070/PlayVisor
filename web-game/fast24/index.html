@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fast24</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app">
+      <section id="main-screen" class="screen main-screen">
+        <div class="brand-mark" aria-hidden="true">
+          <div class="mark-tile">2</div>
+          <div class="mark-tile">4</div>
+        </div>
+        <h1>Fast24</h1>
+        <p class="tagline">Make 24 before the timer gets away.</p>
+        <div class="main-actions" aria-label="Main menu">
+          <button id="difficulty-button" class="secondary-button" type="button">Difficulty</button>
+          <button id="rules-button" class="secondary-button" type="button">Rules</button>
+          <button id="start-button" class="primary-button" type="button">Start Game</button>
+        </div>
+      </section>
+
+      <section id="game-screen" class="screen game-screen hidden" aria-live="polite">
+        <header class="game-header">
+          <div>
+            <span class="label">Time</span>
+            <strong id="timer">0.0s</strong>
+          </div>
+          <div>
+            <span class="label">Difficulty</span>
+            <strong id="difficulty-label">Normal</strong>
+          </div>
+        </header>
+
+        <div class="game-layout">
+          <section class="play-area" aria-label="Numbers and expression">
+            <div id="completion-message" class="completion-message hidden"></div>
+            <div id="values" class="values-grid"></div>
+            <div class="expression-panel">
+              <span class="label">Current expression</span>
+              <div id="expression" class="expression">Select a number, an operator, then another number.</div>
+            </div>
+          </section>
+
+          <aside class="operator-panel" aria-label="Operators">
+            <button class="operator-button" type="button" data-operator="+">+</button>
+            <button class="operator-button" type="button" data-operator="-">-</button>
+            <button class="operator-button" type="button" data-operator="*">*</button>
+            <button class="operator-button" type="button" data-operator="/">/</button>
+          </aside>
+        </div>
+
+        <div class="game-actions">
+          <button id="reset-button" class="secondary-button" type="button">Reset</button>
+          <button id="clear-button" class="secondary-button" type="button">Clear Selection</button>
+          <button id="give-up-button" class="secondary-button" type="button">Give Up</button>
+          <button id="back-button" class="secondary-button" type="button">Back to Main Page</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="rules-dialog" class="dialog">
+      <h2>Rules</h2>
+      <p>Use all four numbers exactly once to make 24. Click a number, an operator, and another number to combine them into a new value.</p>
+      <p>Addition, subtraction, multiplication, and division are allowed. Reset restores the current numbers without restarting the timer.</p>
+      <p>The timer stops when the final remaining value is 24.</p>
+      <button class="primary-button dialog-close" type="button" data-close="rules-dialog">Close</button>
+    </dialog>
+
+    <dialog id="difficulty-dialog" class="dialog">
+      <h2>Difficulty</h2>
+      <div class="difficulty-options">
+        <button class="difficulty-option" type="button" data-difficulty="easy">Easy</button>
+        <button class="difficulty-option active" type="button" data-difficulty="normal">Normal</button>
+        <button class="difficulty-option" type="button" data-difficulty="hard">Hard</button>
+      </div>
+      <button class="primary-button dialog-close" type="button" data-close="difficulty-dialog">Done</button>
+    </dialog>
+
+    <script src="game-core.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
