@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#faf2e1">
+  <title>四条 · Four Lines</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell" data-game="four-lines">
+    <section id="home-screen" class="screen home-screen" aria-labelledby="home-title">
+      <header class="top-actions">
+        <button id="home-language" class="icon-button" type="button" aria-label="语言">🌐</button>
+        <button id="home-rules" class="icon-button" type="button" aria-label="游戏规则">📖</button>
+      </header>
+      <div class="hero">
+        <p class="eyebrow">FOUR LINES</p>
+        <h1 id="home-title">四条</h1>
+        <p id="home-subtitle" class="subtitle">四子成线，顶子取胜</p>
+      </div>
+      <div class="home-actions">
+        <button id="start-ai" class="primary-button" type="button">
+          <span class="button-icon" aria-hidden="true">♟</span>
+          <span id="start-ai-label">人机对战</span>
+        </button>
+        <button id="start-local" class="secondary-button" type="button">
+          <span class="button-icon" aria-hidden="true">♙</span>
+          <span id="start-local-label">双人单机对战</span>
+        </button>
+      </div>
+      <section class="audio-panel" aria-label="音频设置">
+        <label class="range-row" for="effects-volume">
+          <span class="range-label"><span aria-hidden="true">🔊</span><span id="effects-label">音效</span></span>
+          <input id="effects-volume" type="range" min="0" max="1" step="0.01" value="0.55">
+          <output id="effects-value" for="effects-volume">55%</output>
+        </label>
+        <label class="range-row" for="music-volume">
+          <span class="range-label"><span aria-hidden="true">♫</span><span id="music-label">音乐</span></span>
+          <input id="music-volume" type="range" min="0" max="1" step="0.01" value="0.55">
+          <output id="music-value" for="music-volume">55%</output>
+        </label>
+      </section>
+    </section>
+
+    <section id="game-screen" class="screen game-screen" hidden aria-live="polite">
+      <header class="game-header">
+        <div class="game-title-row">
+          <h1 id="game-title">四条</h1>
+          <span id="phase-badge" class="phase-badge">下子阶段</span>
+          <div class="header-actions">
+            <button id="game-language" class="icon-button" type="button" aria-label="语言">🌐</button>
+            <button id="game-rules" class="icon-button" type="button" aria-label="游戏规则">📖</button>
+          </div>
+        </div>
+        <div id="status-banner" class="status-banner">
+          <span id="status-marker" class="status-marker" aria-hidden="true"></span>
+          <span id="status-text">白方下子 · 剩余 8 子</span>
+        </div>
+        <div class="piece-counts">
+          <span id="white-count">白方 0/8</span>
+          <span id="black-count">黑方 0/8</span>
+        </div>
+      </header>
+
+      <div id="board-wrap" class="board-wrap" aria-label="四条棋盘">
+        <img class="board-image" src="./assets/board.png" alt="浅色木质四条棋盘">
+        <div id="board-points" class="board-points"></div>
+      </div>
+
+      <section id="capture-panel" class="capture-panel" hidden></section>
+      <footer class="game-footer">
+        <p id="game-hint" class="game-hint">双方各下八子后开始走子</p>
+        <div class="footer-actions">
+          <button id="return-home" class="primary-button compact" type="button">返回起始页</button>
+          <button id="restart-game" class="text-button" type="button">重新开始</button>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <div id="language-menu" class="popover" hidden role="dialog" aria-label="语言">
+    <button type="button" data-locale="zh">中文</button>
+    <button type="button" data-locale="en">English</button>
+  </div>
+
+  <div id="rules-modal" class="modal-backdrop" hidden>
+    <section class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <header class="rules-header">
+        <h2 id="rules-title">游戏规则</h2>
+        <button id="close-rules" class="icon-button" type="button" aria-label="关闭">×</button>
+      </header>
+      <div id="rules-content" class="rules-content"></div>
+    </section>
+  </div>
+
+  <script src="./game-core.js"></script>
+  <script src="./ai.js"></script>
+  <script src="./game.js"></script>
+</body>
+</html>

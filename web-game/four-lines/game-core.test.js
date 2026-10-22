@@ -227,3 +227,34 @@ test('AI prefers the only immediate winning capture', () => {
   assert.equal(next.board.has('C1'), false);
   assert.equal(ai.actionCapturedCount({ capturedPositions: new Set(['C1']) }), 1);
 });
+
+test('loads and saves bilingual volume settings with safe defaults', () => {
+  const game = require('./game');
+  const storage = new Map();
+  const adapter = {
+    getItem: (key) => storage.get(key) ?? null,
+    setItem: (key, value) => storage.set(key, String(value)),
+  };
+
+  assert.deepEqual(game.loadSettings(adapter), {
+    locale: 'zh',
+    effectsVolume: 0.55,
+    musicVolume: 0.55,
+  });
+  assert.equal(game.clampVolume(-0.2), 0);
+  assert.equal(game.clampVolume(1.5), 1);
+  assert.equal(game.normalizeLocale('en'), 'en');
+  assert.equal(game.normalizeLocale('fr'), 'zh');
+
+  game.saveSettings(adapter, {
+    locale: 'en',
+    effectsVolume: 0.73,
+    musicVolume: 0.31,
+  });
+
+  assert.deepEqual(game.loadSettings(adapter), {
+    locale: 'en',
+    effectsVolume: 0.73,
+    musicVolume: 0.31,
+  });
+});
