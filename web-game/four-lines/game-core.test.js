@@ -259,6 +259,21 @@ test('loads and saves bilingual volume settings with safe defaults', () => {
   });
 });
 
+test('provides a visual rules tutorial for both locales', () => {
+  const game = require('./game');
+  const expectedSteps = ['goal', 'placement', 'movement', 'capture'];
+
+  for (const locale of ['zh', 'en']) {
+    const strings = game.STRINGS[locale];
+    assert.ok(strings.rulesIntro.title);
+    assert.ok(strings.rulesIntro.boardAlt);
+    assert.deepEqual(strings.rulesSteps.map((step) => step.id), expectedSteps);
+    assert.ok(strings.rulesSteps.every((step) => step.ariaLabel && step.body.length > 0));
+    assert.match(game.rulesTutorialMarkup(strings), /rule-diagram/);
+    assert.match(game.rulesTutorialMarkup(strings), /rules-demo/);
+  }
+});
+
 test('rejects stale AI request results and exposes the launcher marker', () => {
   const fs = require('node:fs');
   const game = require('./game');

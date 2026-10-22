@@ -12,6 +12,12 @@
   };
   const POINT_X = [0.142, 0.381, 0.614, 0.854];
   const POINT_Y = [0.154, 0.379, 0.610, 0.837];
+  const RULE_SCENES = {
+    goal: { stones: { A1: 'white', B1: 'white', C1: 'white', D1: 'white' }, line: 'row-1' },
+    placement: { stones: { A1: 'white', C2: 'white', B1: 'black', D2: 'black' }, ghost: 'C1' },
+    movement: { stones: { B2: 'white', D4: 'black' }, arrow: 'B2-C2' },
+    capture: { stones: { A2: 'white', B2: 'white', C2: 'black', D2: 'black' }, arrow: 'B2-C2', press: true },
+  };
   const STRINGS = {
     zh: {
       appTitle: '四条', subtitle: '四子成线，顶子取胜', playAi: '人机对战', playLocal: '双人单机对战',
@@ -23,13 +29,17 @@
       statusWin: (side) => `${side}获胜`, statusCapture: '形成吃子，请选择吃法',
       statusRemove: (side) => `${side}无路可走，请淘汰一子`, statusPlace: (side, remaining) => `${side}下子 · 剩余 ${remaining} 子`,
       statusMove: (side) => `轮到${side}走子`, capturePress: (positions) => `顶子：吃掉 ${positions.join('、')}`,
-      rulesSections: [
-        ['棋盘与棋子', ['棋盘有 16 个交点。列从左到右为 A 到 D，行从上到下为 1 到 4。', '黑白双方各有 8 枚棋子，白方先手，双方轮流行动。']],
-        ['一、下子', ['双方轮流将一枚棋子放到空交点，直到双方各下完 8 枚。', '下子时也可以吃子。如果出现多种吃法，由当前玩家选择一种。', '双方都下完 8 枚后，才进入走子阶段。']],
-        ['二、走子', ['每次移动一枚棋子，沿横线或竖线走到相邻的空交点。不能斜走。', '走子后也可以吃子。']],
-        ['吃子规则', ['四子成线：己方 4 枚棋子横向或竖向连成一条完整直线后，可以任选最多 4 枚对方棋子吃掉。', '顶子：恰好连续的 2 枚己方棋子，可以把紧邻的 1 或 2 枚连续对方棋子顶向空位或棋盘边缘，并吃掉被顶的棋子。', '连续 3 枚或更多己方棋子不能顶吃。如果这对己方棋子两端都被顶住，则两边都不能吃。', '以上两种吃法在下子和走子阶段都有效。']],
-        ['无棋可走', ['走子阶段轮到自己时，如果所有棋子都无法移动，就必须淘汰一枚自己的棋子，并结束本回合。']],
-        ['胜负', ['进入走子阶段后，若对方棋子全部被吃掉，则获胜。下子阶段即使棋盘上的棋子暂时被吃光，只要还有棋子未下完，对局就继续；双方各下完 8 枚后才开始判定。']],
+      rulesIntro: {
+        eyebrow: '先记住一句话', title: '四子成线，顶子取胜',
+        body: '白黑双方各有 8 枚棋子。先轮流下完，再沿棋线移动；谁把对方的棋子吃光，谁获胜。',
+        boardAlt: '四条的 4×4 木质棋盘示意图', boardCaption: '4×4 棋盘：横竖相连，斜线不能走。',
+        demoLabel: '一段动画看懂整局', demoButton: '重播演示',
+      },
+      rulesSteps: [
+        { id: 'goal', number: '1', title: '目标：把对方棋子吃光', ariaLabel: '四枚白棋横向连成一条线', body: ['白方先手，双方各有 8 枚棋子。进入走子阶段后，只要对方棋子全部被吃掉，就赢了。', '下子阶段暂时没有棋子也不会立刻输：必须等双方各下完 8 枚，才进入走子阶段。'] },
+        { id: 'placement', number: '2', title: '下子：先把 8 枚棋子放上棋盘', ariaLabel: '白黑棋子轮流放入空交点，旁边有一个待下的空位', body: ['轮到你时，点击一个空交点放入 1 枚棋子；白方和黑方交替下子。', '双方都放完 8 枚后，游戏才从“下子阶段”进入“走子阶段”。下子时也可能触发吃子。'] },
+        { id: 'movement', number: '3', title: '走子：沿线移动一格', ariaLabel: '白棋从 B2 沿横线移动到 C2', body: ['走子阶段，每次选自己的 1 枚棋子，再点相邻的空交点。只能横向或竖向走 1 格，不能斜走，也不能跳过棋子。', '走子后同样可能形成四连或顶子。'] },
+        { id: 'capture', number: '4', title: '吃子：记住“四连”和“顶子”', ariaLabel: '两枚白棋把相邻黑棋向右顶出棋盘', body: ['四连：己方 4 枚棋子横向或竖向连成完整直线后，可任选最多 4 枚对方棋子吃掉。', '顶子：必须是恰好连续的 2 枚己方棋子，把紧邻的 1 或 2 枚对方棋子向空位或棋盘边缘顶掉。己方连续 3 枚或更多不能顶；两端都被挡住时也不能顶。'] },
       ],
     },
     en: {
@@ -42,6 +52,18 @@
       statusWin: (side) => `${side} wins`, statusCapture: 'Capture available. Choose how to capture.',
       statusRemove: (side) => `${side} has no moves. Remove one of your stones.`, statusPlace: (side, remaining) => `${side} to place · ${remaining} remaining`,
       statusMove: (side) => `${side}'s turn to move`, capturePress: (positions) => `Press: capture ${positions.join(', ')}`,
+      rulesIntro: {
+        eyebrow: 'Remember this first', title: 'Four in a row, then press to win',
+        body: 'White and Black each have 8 stones. Place them first, then move along the lines; capture all opposing stones to win.',
+        boardAlt: 'Four Lines 4-by-4 wooden board diagram', boardCaption: 'A 4×4 board: move horizontally or vertically, never diagonally.',
+        demoLabel: 'See one game in motion', demoButton: 'Replay demo',
+      },
+      rulesSteps: [
+        { id: 'goal', number: '1', title: 'Goal: capture every opposing stone', ariaLabel: 'Four white stones make a horizontal line', body: ['White moves first. Each side has 8 stones, and the winner is the player who captures all opposing stones during the movement phase.', 'Losing all stones temporarily during placement does not end the game: both sides must finish placing all 8 stones first.'] },
+        { id: 'placement', number: '2', title: 'Place: put all 8 stones on the board', ariaLabel: 'White and black stones take turns entering empty intersections beside one empty target', body: ['On your turn, click an empty intersection to place 1 stone. White and Black alternate turns.', 'The movement phase begins only after both sides have placed all 8 stones. A capture can also happen after a placement.'] },
+        { id: 'movement', number: '3', title: 'Move: one step along a line', ariaLabel: 'A white stone moves from B2 to C2 along a horizontal line', body: ['During movement, select one of your stones and click a neighboring empty intersection. Move exactly one horizontal or vertical step; never diagonally or over another stone.', 'A move can also create a four-line or a press capture.'] },
+        { id: 'capture', number: '4', title: 'Capture: remember “four-line” and “press”', ariaLabel: 'Two white stones press adjacent black stones toward the right edge', body: ['Four-line: make an unbroken horizontal or vertical line of 4 stones, then choose up to 4 opposing stones to capture.', 'Press: exactly 2 consecutive stones can press 1 or 2 consecutive opposing stones toward an empty point or the board edge. A friendly line of 3+ cannot press; if both ends are blocked, neither press works.'] },
+      ],
       rulesSections: [
         ['The board', ['The board has 16 intersections. Columns run A to D from left to right, and rows run 1 to 4 from top to bottom.', 'Black and White each have 8 stones. White plays first, and players take turns.']],
         ['1. Place your stones', ['Take turns placing one stone on an empty intersection until both sides have placed all 8 stones.', 'Captures can happen during placement. The moving side chooses a capture when more than one option is available.', 'The movement phase starts only after both sides have placed all 8 stones.']],
@@ -80,6 +102,52 @@
   }
 
   function isCurrentRequest(activeRequestId, requestId) { return activeRequestId === requestId; }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[character]));
+  }
+
+  function ruleBoardMarkup(step) {
+    const scene = RULE_SCENES[step.id];
+    const cells = [];
+    for (let row = 0; row < 4; row += 1) {
+      for (let column = 0; column < 4; column += 1) {
+        const key = core.positionKey(column, row);
+        const stone = scene.stones[key];
+        const classes = ['rule-cell'];
+        if (scene.ghost === key) classes.push('ghost');
+        cells.push(`<span class="${classes.join(' ')}" aria-hidden="true">${stone ? `<span class="rule-stone ${stone}"></span>` : ''}</span>`);
+      }
+    }
+    const overlays = [
+      scene.line ? `<span class="rule-line ${scene.line}" aria-hidden="true"></span>` : '',
+      scene.arrow ? `<span class="rule-arrow ${scene.arrow.replace('-', ' ')}" aria-hidden="true">→</span>` : '',
+    ].join('');
+    return `<div class="rule-diagram ${step.id}" role="img" aria-label="${escapeHtml(step.ariaLabel)}"><div class="rule-grid">${cells.join('')}</div>${overlays}</div>`;
+  }
+
+  function rulesTutorialMarkup(strings) {
+    const intro = strings.rulesIntro;
+    const steps = strings.rulesSteps.map((step) => `
+      <article class="rule-card rule-step">
+        <div class="rule-step-heading"><span class="rule-step-number">${escapeHtml(step.number)}</span><h3>${escapeHtml(step.title)}</h3></div>
+        ${ruleBoardMarkup(step)}
+        ${step.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+      </article>`).join('');
+    return `
+      <section class="rules-intro">
+        <div class="rules-intro-copy"><span class="rules-eyebrow">${escapeHtml(intro.eyebrow)}</span><h3>${escapeHtml(intro.title)}</h3><p>${escapeHtml(intro.body)}</p></div>
+        <figure class="rules-board-preview"><img src="./assets/board.png" alt="${escapeHtml(intro.boardAlt)}"><figcaption>${escapeHtml(intro.boardCaption)}</figcaption></figure>
+      </section>
+      <section class="rules-demo" aria-label="${escapeHtml(intro.demoLabel)}">
+        <div class="rules-demo-header"><h3>${escapeHtml(intro.demoLabel)}</h3><button type="button" class="demo-replay" data-rules-replay>${escapeHtml(intro.demoButton)}</button></div>
+        <div id="rules-demo-board" class="rules-demo-board is-playing" role="img" aria-label="${escapeHtml(intro.demoLabel)}"><span class="demo-stone white demo-white-one"></span><span class="demo-stone white demo-white-two"></span><span class="demo-stone black demo-black-one"></span><span class="demo-stone black demo-black-two"></span><span class="demo-arrow" aria-hidden="true">→</span></div>
+        <div class="rules-demo-labels"><span>① ${intro.demoButton === 'Replay demo' ? 'place' : '下子'}</span><span>② ${intro.demoButton === 'Replay demo' ? 'move' : '走子'}</span><span>③ ${intro.demoButton === 'Replay demo' ? 'make a line' : '成线'}</span><span>④ ${intro.demoButton === 'Replay demo' ? 'capture' : '吃子'}</span></div>
+      </section>
+      <div class="rules-steps">${steps}</div>`;
+  }
 
   class AudioManager {
     constructor() {
@@ -170,6 +238,14 @@
       this.byId('close-rules').addEventListener('click', () => this.closeRules());
       this.byId('rules-modal').addEventListener('click', (event) => {
         if (event.target === this.byId('rules-modal')) this.closeRules();
+      });
+      this.byId('rules-content').addEventListener('click', (event) => {
+        if (!event.target.closest('[data-rules-replay]')) return;
+        const demo = this.byId('rules-demo-board');
+        if (!demo) return;
+        demo.classList.remove('is-playing');
+        void demo.offsetWidth;
+        demo.classList.add('is-playing');
       });
       this.byId('language-menu').addEventListener('click', (event) => {
         const locale = event.target.closest('[data-locale]')?.dataset.locale;
@@ -501,21 +577,7 @@
       const strings = this.strings();
       this.byId('rules-title').textContent = strings.rules;
       this.byId('close-rules').setAttribute('aria-label', strings.close);
-      const content = this.byId('rules-content');
-      content.textContent = '';
-      for (const [heading, paragraphs] of strings.rulesSections) {
-        const card = this.document.createElement('article');
-        card.className = 'rule-card';
-        const h3 = this.document.createElement('h3');
-        h3.textContent = heading;
-        card.appendChild(h3);
-        for (const paragraph of paragraphs) {
-          const p = this.document.createElement('p');
-          p.textContent = paragraph;
-          card.appendChild(p);
-        }
-        content.appendChild(card);
-      }
+      this.byId('rules-content').innerHTML = rulesTutorialMarkup(strings);
     }
   }
 
@@ -528,5 +590,6 @@
   return {
     AudioManager, DEFAULT_SETTINGS, GameController, KEYS, STRINGS, boot,
     clampVolume, isCurrentRequest, loadSettings, normalizeLocale, saveSettings,
+    rulesTutorialMarkup,
   };
 });
