@@ -184,3 +184,46 @@ test('clones state deeply and simulates actions without changing the source', ()
   assert.equal(applyAction(state, action), true);
   assert.equal(state.board.get('B1'), 'black');
 });
+
+test('AI returns legal placement and movement actions without mutating state', () => {
+  const ai = require('./ai');
+  const placement = createState();
+  const placementBefore = cloneState(placement);
+  const placementAction = ai.chooseHardAction(placement, 'white');
+
+  assert.equal(placementAction.player, 'white');
+  assert.doesNotThrow(() => simulateAction(placement, placementAction));
+  assert.deepEqual([...placement.board], [...placementBefore.board]);
+  assert.deepEqual(placement.placementsRemaining, placementBefore.placementsRemaining);
+
+  const movement = createState();
+  movement.phase = 'movement';
+  movement.currentPlayer = 'black';
+  movement.board.set('A1', 'black');
+  movement.board.set('D4', 'white');
+  const movementBefore = cloneState(movement);
+  const movementAction = ai.chooseHardAction(movement, 'black');
+
+  assert.equal(movementAction.player, 'black');
+  assert.doesNotThrow(() => simulateAction(movement, movementAction));
+  assert.deepEqual([...movement.board], [...movementBefore.board]);
+});
+
+test('AI prefers the only immediate winning capture', () => {
+  const ai = require('./ai');
+  const state = createState();
+  state.phase = 'movement';
+  state.currentPlayer = 'black';
+  state.board.set('A1', 'black');
+  state.board.set('B2', 'black');
+  state.board.set('C1', 'white');
+
+  const action = ai.chooseHardAction(state, 'black');
+  const next = simulateAction(state, action);
+
+  assert.equal(action.from, 'B2');
+  assert.equal(action.to, 'B1');
+  assert.equal(next.winner, 'black');
+  assert.equal(next.board.has('C1'), false);
+  assert.equal(ai.actionCapturedCount({ capturedPositions: new Set(['C1']) }), 1);
+});
