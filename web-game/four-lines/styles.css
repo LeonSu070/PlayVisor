@@ -11,6 +11,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html, body { min-height: 100%; }
 
@@ -108,6 +109,7 @@ h1, h2, p { margin: 0; }
 .stone.white { background: linear-gradient(135deg, #fff, #e2d5c0); }
 .stone.black { border-color: #140b05; background: linear-gradient(135deg, #5b3b24, #1b1009); }
 .point-button.trace::after { content: ""; position: absolute; inset: 12%; border: 3px solid rgba(225, 107, 25, 0.88); border-radius: 50%; }
+.trace-line { position: absolute; z-index: 1; height: 6px; transform-origin: left center; border-radius: 999px; background: rgba(225, 107, 25, 0.88); pointer-events: none; }
 .coordinate { position: absolute; z-index: 2; display: grid; place-items: center; width: 22px; height: 20px; border: 1px solid rgba(128, 96, 67, 0.34); border-radius: 6px; background: #f8eedc; color: #68482f; font-size: 12px; font-weight: 750; }
 .coordinate.column { top: -22px; transform: translateX(-50%); }
 .coordinate.row { left: -22px; transform: translateY(-50%); }

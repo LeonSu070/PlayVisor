@@ -258,3 +258,13 @@ test('loads and saves bilingual volume settings with safe defaults', () => {
     musicVolume: 0.31,
   });
 });
+
+test('rejects stale AI request results and exposes the launcher marker', () => {
+  const fs = require('node:fs');
+  const game = require('./game');
+  const html = fs.readFileSync(require.resolve('./index.html'), 'utf8');
+
+  assert.equal(game.isCurrentRequest(4, 4), true);
+  assert.equal(game.isCurrentRequest(4, 5), false);
+  assert.match(html, /data-game="four-lines"/);
+});
