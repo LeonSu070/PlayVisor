@@ -269,8 +269,22 @@ test('provides a visual rules tutorial for both locales', () => {
     assert.ok(strings.rulesIntro.boardAlt);
     assert.deepEqual(strings.rulesSteps.map((step) => step.id), expectedSteps);
     assert.ok(strings.rulesSteps.every((step) => step.ariaLabel && step.body.length > 0));
-    assert.match(game.rulesTutorialMarkup(strings), /rule-diagram/);
-    assert.match(game.rulesTutorialMarkup(strings), /rules-demo/);
+    assert.match(game.rulesTutorialMarkup(strings), /rule-shot-board/);
+    assert.match(game.rulesTutorialMarkup(strings), /rule-shot-points/);
+  }
+});
+
+test('defines full-board coordinate examples for every move and capture rule', () => {
+  const game = require('./game');
+  const expectedExamples = ['placement', 'movement', 'press-one', 'press-two', 'four-line'];
+
+  for (const locale of ['zh', 'en']) {
+    const strings = game.STRINGS[locale];
+    assert.deepEqual(strings.rulesExamples.map((example) => example.id), expectedExamples);
+    assert.ok(strings.rulesExamples.every((example) => example.caption.includes('D3') || example.id === 'four-line'));
+    assert.match(game.rulesTutorialMarkup(strings), /rule-shot-points/);
+    assert.match(game.rulesTutorialMarkup(strings), /A.*B.*C.*D/);
+    assert.match(game.rulesTutorialMarkup(strings), /1.*2.*3.*4/);
   }
 });
 

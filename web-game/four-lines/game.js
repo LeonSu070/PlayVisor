@@ -33,13 +33,20 @@
         eyebrow: '先记住一句话', title: '四子成线，顶子取胜',
         body: '白黑双方各有 8 枚棋子。先轮流下完，再沿棋线移动；谁把对方的棋子吃光，谁获胜。',
         boardAlt: '四条的 4×4 木质棋盘示意图', boardCaption: '4×4 棋盘：横竖相连，斜线不能走。',
-        demoLabel: '一段动画看懂整局', demoButton: '重播演示',
+        demoLabel: '实际运行界面示例', demoButton: '重播演示',
       },
       rulesSteps: [
         { id: 'goal', number: '1', title: '目标：把对方棋子吃光', ariaLabel: '四枚白棋横向连成一条线', body: ['白方先手，双方各有 8 枚棋子。进入走子阶段后，只要对方棋子全部被吃掉，就赢了。', '下子阶段暂时没有棋子也不会立刻输：必须等双方各下完 8 枚，才进入走子阶段。'] },
         { id: 'placement', number: '2', title: '下子：先把 8 枚棋子放上棋盘', ariaLabel: '白黑棋子轮流放入空交点，旁边有一个待下的空位', body: ['轮到你时，点击一个空交点放入 1 枚棋子；白方和黑方交替下子。', '双方都放完 8 枚后，游戏才从“下子阶段”进入“走子阶段”。下子时也可能触发吃子。'] },
         { id: 'movement', number: '3', title: '走子：沿线移动一格', ariaLabel: '白棋从 B2 沿横线移动到 C2', body: ['走子阶段，每次选自己的 1 枚棋子，再点相邻的空交点。只能横向或竖向走 1 格，不能斜走，也不能跳过棋子。', '走子后同样可能形成四连或顶子。'] },
         { id: 'capture', number: '4', title: '吃子：记住“四连”和“顶子”', ariaLabel: '两枚白棋把相邻黑棋向右顶出棋盘', body: ['四连：己方 4 枚棋子横向或竖向连成完整直线后，可任选最多 4 枚对方棋子吃掉。', '顶子：必须是恰好连续的 2 枚己方棋子，把紧邻的 1 或 2 枚对方棋子向空位或棋盘边缘顶掉。己方连续 3 枚或更多不能顶；两端都被挡住时也不能顶。'] },
+      ],
+      rulesExamples: [
+        { id: 'placement', title: '落子', caption: '白方落子 D3：把一枚白棋放到空交点。', ariaLabel: '完整四条棋盘，白方刚落子 D3', stones: { D3: 'white' }, focus: ['D3'] },
+        { id: 'movement', title: '走子', caption: '白方从 D3 走到 D4：只能沿横线或竖线移动一格。', ariaLabel: '完整四条棋盘，白棋从 D3 走到 D4', stones: { D4: 'white' }, ghost: 'D3', focus: ['D4'], arrow: 'up' },
+        { id: 'press-one', title: '顶子吃一', caption: '白方落子 D3，可以吃掉黑方 B3。', ariaLabel: '完整四条棋盘，白方在 D3 顶掉黑方 B3', stones: { C3: 'white', D3: 'white', B3: 'black' }, focus: ['D3', 'B3'], victims: ['B3'], arrow: 'left' },
+        { id: 'press-two', title: '顶子吃二', caption: '白方落子 D3，可以吃掉黑方 B3、A3。', ariaLabel: '完整四条棋盘，白方在 D3 顶掉黑方 B3 和 A3', stones: { C3: 'white', D3: 'white', B3: 'black', A3: 'black' }, focus: ['D3', 'B3', 'A3'], victims: ['B3', 'A3'], arrow: 'left' },
+        { id: 'four-line', title: '成四条吃四', caption: '白方落子 D1，成四条后可以选择吃掉黑方 A2、B2、C2、D2。', ariaLabel: '完整四条棋盘，白方在 D1 成四条并选择四枚黑棋', stones: { A1: 'white', B1: 'white', C1: 'white', D1: 'white', A2: 'black', B2: 'black', C2: 'black', D2: 'black' }, focus: ['D1'], victims: ['A2', 'B2', 'C2', 'D2'], line: 'row-1' },
       ],
     },
     en: {
@@ -56,13 +63,20 @@
         eyebrow: 'Remember this first', title: 'Four in a row, then press to win',
         body: 'White and Black each have 8 stones. Place them first, then move along the lines; capture all opposing stones to win.',
         boardAlt: 'Four Lines 4-by-4 wooden board diagram', boardCaption: 'A 4×4 board: move horizontally or vertically, never diagonally.',
-        demoLabel: 'See one game in motion', demoButton: 'Replay demo',
+        demoLabel: 'Full-board examples from the game screen', demoButton: 'Replay demo',
       },
       rulesSteps: [
         { id: 'goal', number: '1', title: 'Goal: capture every opposing stone', ariaLabel: 'Four white stones make a horizontal line', body: ['White moves first. Each side has 8 stones, and the winner is the player who captures all opposing stones during the movement phase.', 'Losing all stones temporarily during placement does not end the game: both sides must finish placing all 8 stones first.'] },
         { id: 'placement', number: '2', title: 'Place: put all 8 stones on the board', ariaLabel: 'White and black stones take turns entering empty intersections beside one empty target', body: ['On your turn, click an empty intersection to place 1 stone. White and Black alternate turns.', 'The movement phase begins only after both sides have placed all 8 stones. A capture can also happen after a placement.'] },
         { id: 'movement', number: '3', title: 'Move: one step along a line', ariaLabel: 'A white stone moves from B2 to C2 along a horizontal line', body: ['During movement, select one of your stones and click a neighboring empty intersection. Move exactly one horizontal or vertical step; never diagonally or over another stone.', 'A move can also create a four-line or a press capture.'] },
         { id: 'capture', number: '4', title: 'Capture: remember “four-line” and “press”', ariaLabel: 'Two white stones press adjacent black stones toward the right edge', body: ['Four-line: make an unbroken horizontal or vertical line of 4 stones, then choose up to 4 opposing stones to capture.', 'Press: exactly 2 consecutive stones can press 1 or 2 consecutive opposing stones toward an empty point or the board edge. A friendly line of 3+ cannot press; if both ends are blocked, neither press works.'] },
+      ],
+      rulesExamples: [
+        { id: 'placement', title: 'Place', caption: 'White places at D3: put one white stone on an empty intersection.', ariaLabel: 'Full Four Lines board, White has just placed at D3', stones: { D3: 'white' }, focus: ['D3'] },
+        { id: 'movement', title: 'Move', caption: 'White moves from D3 to D4: move one step horizontally or vertically.', ariaLabel: 'Full Four Lines board, a white stone moves from D3 to D4', stones: { D4: 'white' }, ghost: 'D3', focus: ['D4'], arrow: 'up' },
+        { id: 'press-one', title: 'Press one', caption: 'White places at D3 and can capture Black at B3.', ariaLabel: 'Full Four Lines board, White at D3 presses Black at B3', stones: { C3: 'white', D3: 'white', B3: 'black' }, focus: ['D3', 'B3'], victims: ['B3'], arrow: 'left' },
+        { id: 'press-two', title: 'Press two', caption: 'White places at D3 and can capture Black at B3 and A3.', ariaLabel: 'Full Four Lines board, White at D3 presses Black at B3 and A3', stones: { C3: 'white', D3: 'white', B3: 'black', A3: 'black' }, focus: ['D3', 'B3', 'A3'], victims: ['B3', 'A3'], arrow: 'left' },
+        { id: 'four-line', title: 'Four-line captures four', caption: 'White places at D1, makes a four-line, then can choose Black A2, B2, C2 and D2.', ariaLabel: 'Full Four Lines board, White makes a line at D1 and selects four black stones', stones: { A1: 'white', B1: 'white', C1: 'white', D1: 'white', A2: 'black', B2: 'black', C2: 'black', D2: 'black' }, focus: ['D1'], victims: ['A2', 'B2', 'C2', 'D2'], line: 'row-1' },
       ],
       rulesSections: [
         ['The board', ['The board has 16 intersections. Columns run A to D from left to right, and rows run 1 to 4 from top to bottom.', 'Black and White each have 8 stones. White plays first, and players take turns.']],
@@ -128,25 +142,45 @@
     return `<div class="rule-diagram ${step.id}" role="img" aria-label="${escapeHtml(step.ariaLabel)}"><div class="rule-grid">${cells.join('')}</div>${overlays}</div>`;
   }
 
+  function ruleShotMarkup(example) {
+    const focus = new Set(example.focus || []);
+    const victims = new Set(example.victims || []);
+    const stones = Object.entries(example.stones).map(([key, stone]) => {
+      const position = core.parsePosition(key);
+      const classes = ['rule-shot-stone', stone];
+      if (focus.has(key)) classes.push('focus');
+      if (victims.has(key)) classes.push('victim');
+      return `<span class="${classes.join(' ')}" style="left:${POINT_X[position.column] * 100}%;top:${POINT_Y[position.row] * 100}%" aria-hidden="true"></span>`;
+    }).join('');
+    const ghost = example.ghost ? (() => {
+      const position = core.parsePosition(example.ghost);
+      return `<span class="rule-shot-ghost" style="left:${POINT_X[position.column] * 100}%;top:${POINT_Y[position.row] * 100}%" aria-hidden="true"></span>`;
+    })() : '';
+    const labels = [
+      ...POINT_X.map((left, index) => `<span class="rule-shot-coordinate column" style="left:${left * 100}%" aria-hidden="true">${String.fromCharCode(65 + index)}</span>`),
+      ...POINT_Y.map((top, index) => `<span class="rule-shot-coordinate row" style="top:${top * 100}%" aria-hidden="true">${index + 1}</span>`),
+    ].join('');
+    let arrow = '';
+    const fromKey = example.ghost || 'D3';
+    const toKey = example.id === 'movement' ? 'D4' : 'B3';
+    if (example.arrow) {
+      const from = core.parsePosition(fromKey);
+      const to = core.parsePosition(toKey);
+      const direction = example.arrow === 'up' ? 'up' : 'left';
+      arrow = `<span class="rule-shot-arrow ${direction}" style="left:${((POINT_X[from.column] + POINT_X[to.column]) / 2) * 100}%;top:${((POINT_Y[from.row] + POINT_Y[to.row]) / 2) * 100}%" aria-hidden="true">➜</span>`;
+    }
+    const line = example.line ? `<span class="rule-shot-line ${example.line}" aria-hidden="true"></span>` : '';
+    return `<article class="rule-shot"><header class="rule-shot-header"><span class="rule-shot-number">${escapeHtml(example.title)}</span><h3>${escapeHtml(example.title)}</h3></header><div class="rule-shot-board" role="img" aria-label="${escapeHtml(example.ariaLabel)}"><img class="board-image" src="./assets/board.png" alt=""><div class="rule-shot-points">${labels}${ghost}${stones}${line}${arrow}</div></div><p>${escapeHtml(example.caption)}</p></article>`;
+  }
+
   function rulesTutorialMarkup(strings) {
     const intro = strings.rulesIntro;
-    const steps = strings.rulesSteps.map((step) => `
-      <article class="rule-card rule-step">
-        <div class="rule-step-heading"><span class="rule-step-number">${escapeHtml(step.number)}</span><h3>${escapeHtml(step.title)}</h3></div>
-        ${ruleBoardMarkup(step)}
-        ${step.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
-      </article>`).join('');
+    const examples = strings.rulesExamples.map(ruleShotMarkup).join('');
     return `
       <section class="rules-intro">
-        <div class="rules-intro-copy"><span class="rules-eyebrow">${escapeHtml(intro.eyebrow)}</span><h3>${escapeHtml(intro.title)}</h3><p>${escapeHtml(intro.body)}</p></div>
-        <figure class="rules-board-preview"><img src="./assets/board.png" alt="${escapeHtml(intro.boardAlt)}"><figcaption>${escapeHtml(intro.boardCaption)}</figcaption></figure>
+        <div class="rules-intro-copy"><span class="rules-eyebrow">${escapeHtml(intro.eyebrow)}</span><h3>${escapeHtml(intro.title)}</h3><p>${escapeHtml(intro.body)}</p><p class="rules-coordinate-note">${escapeHtml(intro.boardCaption)}</p></div>
       </section>
-      <section class="rules-demo" aria-label="${escapeHtml(intro.demoLabel)}">
-        <div class="rules-demo-header"><h3>${escapeHtml(intro.demoLabel)}</h3><button type="button" class="demo-replay" data-rules-replay>${escapeHtml(intro.demoButton)}</button></div>
-        <div id="rules-demo-board" class="rules-demo-board is-playing" role="img" aria-label="${escapeHtml(intro.demoLabel)}"><span class="demo-stone white demo-white-one"></span><span class="demo-stone white demo-white-two"></span><span class="demo-stone black demo-black-one"></span><span class="demo-stone black demo-black-two"></span><span class="demo-arrow" aria-hidden="true">→</span></div>
-        <div class="rules-demo-labels"><span>① ${intro.demoButton === 'Replay demo' ? 'place' : '下子'}</span><span>② ${intro.demoButton === 'Replay demo' ? 'move' : '走子'}</span><span>③ ${intro.demoButton === 'Replay demo' ? 'make a line' : '成线'}</span><span>④ ${intro.demoButton === 'Replay demo' ? 'capture' : '吃子'}</span></div>
-      </section>
-      <div class="rules-steps">${steps}</div>`;
+      <section class="rules-examples"><h3 class="rules-examples-title">${escapeHtml(intro.demoLabel)}</h3>${examples}</section>`;
   }
 
   class AudioManager {
