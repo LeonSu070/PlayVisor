@@ -268,3 +268,23 @@ test('rejects stale AI request results and exposes the launcher marker', () => {
   assert.equal(game.isCurrentRequest(4, 5), false);
   assert.match(html, /data-game="four-lines"/);
 });
+
+test('publishes a complete launcher entry and all four lines assets', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const root = path.resolve(__dirname, '../..');
+  const launcher = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(launcher, /name:\s*["']四条["']/);
+  assert.match(launcher, /link:\s*["']\.\/web-game\/four-lines\/index\.html["']/);
+
+  const files = [
+    'web-game/four-lines/index.html',
+    'web-game/four-lines/assets/board.png',
+    'web-game/four-lines/assets/audio/music.mp3',
+    'web-game/four-lines/assets/audio/place.wav',
+    'web-game/four-lines/assets/audio/move.wav',
+    'web-game/four-lines/assets/audio/victory.wav',
+    'web-game/four-lines/assets/audio/defeat.wav',
+  ];
+  for (const file of files) assert.equal(fs.existsSync(path.join(root, file)), true, file);
+});

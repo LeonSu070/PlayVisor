@@ -7,6 +7,7 @@ Mini game portal showcasing a collection of browser-based games with a simple ca
 - **One-page launcher** with responsive grid layout that adapts to the viewport.
 - **Keyboard/mouse and touch support** for paging through the game list.
 - **Curated game library** including platformers, puzzles, runners, and classics like Snake and Tetris.
+- **Four Lines** – a bilingual 4×4 strategy game with local two-player and computer modes, capture rules, audio, and responsive mobile controls.
 - **Zero-build static site** – open the page locally or host it on any static file server.
 
 ## Project structure
@@ -19,6 +20,7 @@ Mini game portal showcasing a collection of browser-based games with a simple ca
 │  ├─ SuperMarioRun/
 │  ├─ chess/
 │  ├─ first-game/
+│  ├─ four-lines/
 │  ├─ gameSuperMario/
 │  ├─ h5study/
 │  ├─ second-game/
@@ -35,6 +37,8 @@ Mini game portal showcasing a collection of browser-based games with a simple ca
 ```
 
 Each folder inside `web-game/` is a self-contained HTML/JS/CSS mini game referenced by the launcher carousel defined in `index.html`.
+
+The Four Lines game is available from the launcher as `四条`. Its static entry page is `web-game/four-lines/index.html`; it reuses the original board and audio assets while keeping the rules engine independent from the DOM for automated Node tests.
 
 ## Running locally
 
@@ -59,6 +63,8 @@ Each folder inside `web-game/` is a self-contained HTML/JS/CSS mini game referen
    - `img`: Path to an icon (SVG/PNG or emoji via `emojiIcon` helper).
    - `link`: Relative path to the game's `index.html`.
 3. Reload the launcher to see the new game card appear in the carousel.
+
+For 四条, keep the complete game directory together under `web-game/four-lines/`, including `game-core.js`, `ai.js`, `game.js`, `styles.css`, and the `assets/` directory.
 
 ## License
 
